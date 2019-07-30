@@ -464,16 +464,16 @@ if strcmp(pfield, 'YES')
         out = strcat(file,'/',num2str(lam),'_',outgen,'_',plot,'_');
 %         print(fig1,strcat(out,'H2D'),'-dpng');
 %         pause(0.5)
-        print(fig2,strcat(out,'H2Dplane','.png'),'-dpng');
-        pause(1)
-%         print(fig3,strcat(out,'Hintensty',num2str(cycle),'.png'),'-dpng');
-%         pause(1) 
+%         print(fig2,strcat(out,'H2Dplane','.png'),'-dpng');
+%         pause(1)
+        print(fig3,strcat(out,'Hintensty',num2str(cycle),'.png'),'-dpng');
+        pause(1) 
 %         print(fig3,strcat(out,'H1D','.png'),'-dpng');
 %         pause(0.5)        
 %         print(fig4,strcat(out,'E2D_cycle',num2str(cycle),'.png'),'-dpng');
 %         pause(1) 
-        print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
-        pause(1) 
+%         print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
+%         pause(1) 
         print(fig6,strcat(out,'Eintensty',num2str(cycle),'.png'),'-dpng');
         pause(1) 
 %         print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');

@@ -37,7 +37,7 @@ for cycle=1:1
     %which octant is simulated - symmetry conditions for E
     oct = 5;
     %number of modes we want to find
-    nr = 10;
+    nr = 2;
     %YES if you want to plot director field
     pdir = 'YES';
     %YES for reflective BC
