@@ -20,15 +20,14 @@ else
 end
     
 %which plane to draw
-px = (nx+1)/2;%fix(c(1) + di);
-py = (ny+1)/2;%fix(c(2) + dj); 
-pz = (nz+1)/2;%fix(c(3) + dk);
+px = int16(nx/2);
+py = int16(ny/2);
+pz = int16(nz/2);
 
 % px = fix(nx/4);
 % py = fix(nx/4); 
 % pz = fix(nx/4); %plane in z which we want to show
 
-Eps0 = 8.85E-12*1E9;
 
 Hx = zeros(nx,ny,nz);
 Hy = zeros(nx,ny,nz);
@@ -204,7 +203,6 @@ for i = 1:nx
     end
 end
 
-Q = real(value / (2*imag(value)));
 
 %PLOTS ENTIRE AREA IF ONLY ONE QUADRANT IS SIMULATED
 % if abs(Q) > 0
@@ -307,19 +305,19 @@ if strcmp(pfield, 'YES')
 
 
     %narise intenziteto
-%     clear zlim
-%     fig3=figure;
-%     set(fig3,'visible','off');
-%     for i = 1:3
-%        subplot(1,3,i);
-%        surf(eval(['intH', num2str(i)]),'edgecolor','none');
-%        zlim([1.1*min(minint) 1.1*max(maxint)]);
-%        caxis([1.1*min(minint) 1.1*max(maxint)]);
-%        title(titlesintH(i))
-%        daspect([1 1 1])
-%        %shading interp;
-%        view(2)
-%     end
+    clear zlim
+    fig3=figure;
+    set(fig3,'visible','off');
+    for i = 1:3
+       subplot(1,3,i);
+       surf(eval(['intH', num2str(i)]),'edgecolor','none');
+       zlim([1.1*min(minint) 1.1*max(maxint)]);
+       caxis([1.1*min(minint) 1.1*max(maxint)]);
+       title(titlesintH(i))
+       daspect([1 1 1])
+       %shading interp;
+       view(2)
+    end
 
     clear s1 s2 s3 s4 s5 s6 s7 s8 s9
     clear l1 l2 l3 l4 l5 l6 l7 l8 l9
@@ -387,14 +385,14 @@ if strcmp(pfield, 'YES')
     end
 
 %     rise odvisnost v eni smeri
-    fig3=figure;
-    set(fig3,'visible','off');
-    for i = 1:9
-       subplot(3,3,i);
-       plot(eval(['lE', num2str(i)]));
-       ylim([1.1*min(minar) 1.1*max(maxar)])
-       title(titles2(i))
-    end
+%     fig3=figure;
+%     set(fig3,'visible','off');
+%     for i = 1:9
+%        subplot(3,3,i);
+%        plot(eval(['lE', num2str(i)]));
+%        ylim([1.1*min(minar) 1.1*max(maxar)])
+%        title(titles2(i))
+%     end
     
     %narise fig1 in subfigure
     clear zlim
@@ -470,16 +468,16 @@ if strcmp(pfield, 'YES')
 %         pause(1)
         print(fig3, strcat(out,'Hintensty', num2str(cycle), '.png'),'-dpng');
         pause(1) 
-        print(fig3, strcat(out,'H1D','.png'), '-dpng');
-        pause(0.5)        
-        print(fig4,strcat(out,'E2D_cycle',num2str(cycle),'.png'),'-dpng');
-        pause(1) 
-        print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
-        pause(1) 
+%         print(fig3, strcat(out,'H1D','.png'), '-dpng');
+%         pause(0.5)        
+%         print(fig4,strcat(out,'E2D_cycle',num2str(cycle),'.png'),'-dpng');
+%         pause(1) 
+%         print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
+%         pause(1) 
         print(fig6,strcat(out,'Eintensty',num2str(cycle),'.png'),'-dpng');
         pause(1) 
-        print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
-        pause(1) 
+%         print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
+%         pause(1) 
     end
 end
 

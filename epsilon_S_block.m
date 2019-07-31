@@ -101,16 +101,6 @@ Mxxv = zeros(n,1);
 Myyv = zeros(n,1); 
 Mzzv = zeros(n,1);
 
-Rxpi = zeros(2*n,1);
-Rypi = zeros(2*n,1);
-Rzpi = zeros(2*n,1);
-Rxpj = zeros(2*n,1);
-Rypj = zeros(2*n,1);
-Rzpj = zeros(2*n,1);
-Rxpv = zeros(2*n,1);
-Rypv = zeros(2*n,1);
-Rzpv = zeros(2*n,1);
-
 
 %FILL THE ARRAYS OF EPSILON COMPONENTS
 for i = 1:nx
@@ -141,44 +131,7 @@ for i = 1:nx
             Myyv(ind(i,j,k)) = DM1(2,2); 
             Mzzv(ind(i,j,k)) = DM1(3,3); 
             
-            %espilon interpolation matrices
-            Rxpi(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            Rxpj(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            Rypi(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            Rypj(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            Rzpi(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            Rzpj(2*ind(i,j,k)-1) = ind(i,j,k); %diagonalni
-            
-            Rxpi(2*ind(i,j,k)-0) = ind(i,j,k); %izvendiagonalni
-            Rxpj(2*ind(i,j,k)-0) = ind(i+1,j,k); %izvendiagonalni
-            Rypi(2*ind(i,j,k)-0) = ind(i,j,k); %izvendiagonalni
-            Rypj(2*ind(i,j,k)-0) = ind(i,j+1,k); %izvendiagonalni
-            Rzpi(2*ind(i,j,k)-0) = ind(i,j,k); %izvendiagonalni
-            Rzpj(2*ind(i,j,k)-0) = ind(i,j,k+1); %izvendiagonalni
-                       
-            if i == nx
-                Rxpv(2*ind(i,j,k)-1) = 1; %maybe2??;       %diagonalni
-                Rxpv(2*ind(i,j,k)-0) = 0;       %diagonalni
-            else
-                Rxpv(2*ind(i,j,k)-1) = 1;       %diagonalni
-                Rxpv(2*ind(i,j,k)-0) = 1;       %izvendiagonalni
-            end
-            
-            if j == ny
-                Rypv(2*ind(i,j,k)-1) = 1; %maybe2??;       %diagonalni
-                Rypv(2*ind(i,j,k)-0) = 0;       %diagonalni
-            else
-                Rypv(2*ind(i,j,k)-1) = 1;       %diagonalni
-                Rypv(2*ind(i,j,k)-0) = 1;       %izvendiagonalni
-            end
-            
-            if k == nz
-                Rzpv(2*ind(i,j,k)-1) = 1; %maybe2??;       %diagonalni
-                Rzpv(2*ind(i,j,k)-0) = 0;       %diagonalni
-            else
-                Rzpv(2*ind(i,j,k)-1) = 1;       %diagonalni
-                Rzpv(2*ind(i,j,k)-0) = 1;       %izvendiagonalni
-            end
+             
             
         end
     end
@@ -200,20 +153,10 @@ Mxx = sparse(Di,Dj,Mxxv);
 Myy = sparse(Di,Dj,Myyv);
 Mzz = sparse(Di,Dj,Mzzv);
 
-Rxp = 1/2*sparse(Rxpi,Rxpj,Rxpv);
-Ryp = 1/2*sparse(Rypi,Rypj,Rypv);
-Rzp = 1/2*sparse(Rzpi,Rzpj,Rzpv);
 
-Rxp = Rxp(1:nx*ny*nz,1:nx*ny*nz); 
-Ryp = Ryp(1:nx*ny*nz,1:nx*ny*nz); 
-Rzp = Rzp(1:nx*ny*nz,1:nx*ny*nz); 
-
-Rxm = Rxp';
-Rym = Ryp';
-Rzm = Rzp';
-
-Eout = [Exx Rxp*Rym*Exy Rxp*Rzm*Exz; Ryp*Rxm*Eyx Eyy Ryp*Rzm*Eyz; Rzp*Rxm*Ezx Rzp*Rym*Ezy Ezz];
+Eout = [Exx Exy Exz; Eyx Eyy Eyz; Ezx Ezy Ezz];
 Mout = [Mxx sparse(n,n) sparse(n,n); sparse(n,n) Myy sparse(n,n); sparse(n,n) sparse(n,n) Mzz];
+
 
 %define space dependance of refractive index
 function f = nord(i,j,k)
@@ -385,11 +328,7 @@ end
 
 %calculates eps_o and deps
 function f = epsO(i,j,k)
-    if abs(gain) > 0 && r(i,j,k,c) < R
-        f = ((nord(i,j,k)+dn(i,j,k))^2 + 2*nord(i,j,k)^2)/3 - gain^2/4;
-    else
-        f = ((nord(i,j,k)+dn(i,j,k))^2 + 2*nord(i,j,k)^2)/3;
-    end
+    f = ((nord(i,j,k)+dn(i,j,k))^2 + 2*nord(i,j,k)^2)/3;
 end
 function f = deps(i,j,k)
     f = (nord(i,j,k)+dn(i,j,k))^2 - nord(i,j,k)^2;
@@ -404,61 +343,55 @@ end
 %calculates components of epsilon from director field, accounts for Yee
 %lattice shifts
 function [eps,mu] = eblock(i,j,k)
-    
-    if abs(gain) > 0 && r(i,j,k,c) < R
-        G = - 1i * gain * NO;
-    else
-        G = 0;
-    end
-    
-    %PML factors
-    if DPMLs(1) == 0
-        sxs = 1;
-    elseif i <= abs(DPMLs(1))
-        sxs = s(i,nx,-DPMLs(1));
-    else
-        sxs = 1;
-    end
-             
-    if DPMLs(2) == 0
-        sys = 1;
-    elseif j <= abs(DPMLs(2))
-        sys = s(j,ny,-DPMLs(2));
-    else
-        sys = 1;
-    end
-            
-    if DPMLs(3) == 0
-        szs = 1;
-    elseif k <= abs(DPMLs(3))
-        szs = s(k,nz,-DPMLs(3));
-    else
-        szs = 1;    
-    end
-
-    if DPMLe(1) == 0
-        sxe = 1;
-    elseif i > nx - DPMLe(1)
-        sxe = s(i,nx,DPMLe(1));
-    else
-        sxe = 1;    
-    end
-             
-    if DPMLe(2) == 0
-        sye = 1;
-    elseif j > ny - DPMLe(2)
-        sye = s(j,ny,DPMLe(2));
-    else
-        sye = 1;    
-    end
-            
-    if DPMLe(3) == 0
-        sze = 1;
-    elseif k > nz - DPMLe(3)
-        sze = s(k,nz,DPMLe(3));
-    else
-        sze = 1;    
-    end
+%     
+%     %PML factors
+%     if DPMLs(1) == 0
+%         sxs = 1;
+%     elseif i <= abs(DPMLs(1))
+%         sxs = s(i,nx,-DPMLs(1));
+%     else
+%         sxs = 1;
+%     end
+%              
+%     if DPMLs(2) == 0
+%         sys = 1;
+%     elseif j <= abs(DPMLs(2))
+%         sys = s(j,ny,-DPMLs(2));
+%     else
+%         sys = 1;
+%     end
+%             
+%     if DPMLs(3) == 0
+%         szs = 1;
+%     elseif k <= abs(DPMLs(3))
+%         szs = s(k,nz,-DPMLs(3));
+%     else
+%         szs = 1;    
+%     end
+% 
+%     if DPMLe(1) == 0
+%         sxe = 1;
+%     elseif i > nx - DPMLe(1)
+%         sxe = s(i,nx,DPMLe(1));
+%     else
+%         sxe = 1;    
+%     end
+%              
+%     if DPMLe(2) == 0
+%         sye = 1;
+%     elseif j > ny - DPMLe(2)
+%         sye = s(j,ny,DPMLe(2));
+%     else
+%         sye = 1;    
+%     end
+%             
+%     if DPMLe(3) == 0
+%         sze = 1;
+%     elseif k > nz - DPMLe(3)
+%         sze = s(k,nz,DPMLe(3));
+%     else
+%         sze = 1;    
+%     end
     
     
     [dir1,dir2,dir3]=dir(i,j,k);
@@ -472,32 +405,31 @@ function [eps,mu] = eblock(i,j,k)
     Qten = [Qxx Qxy Qxz; Qxy Qyy Qyz; Qxz Qyz Qzz];
     
     eps = (deps(i,j,k) * Qten + (epsO(i,j,k)+deps(i,j,k)/3) * eye (3)); 
-    eps(1,1) = eps(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    eps(1,2) = eps(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    eps(1,3) = eps(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    eps(2,1) = eps(2,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    eps(2,2) = eps(2,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    eps(2,3) = eps(2,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    eps(3,1) = eps(3,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    eps(3,2) = eps(3,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    eps(3,3) = eps(3,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    
+%     eps(1,1) = eps(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
+%     eps(1,2) = eps(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
+%     eps(1,3) = eps(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
+%     eps(2,1) = eps(2,1) * (sys*szs/sxs) * (sye*sze/sxe);
+%     eps(2,2) = eps(2,2) * (sxs*szs/sys) * (sxe*sze/sye);
+%     eps(2,3) = eps(2,3) * (sxs*sys/szs) * (sxe*sye/sze);
+%     eps(3,1) = eps(3,1) * (sys*szs/sxs) * (sye*sze/sxe);
+%     eps(3,2) = eps(3,2) * (sxs*szs/sys) * (sxe*sze/sye);
+%     eps(3,3) = eps(3,3) * (sxs*sys/szs) * (sxe*sye/sze);
 
     %mu tensor
-    mxx = sqrt((sxs/(sys*szs)) * (sxe/(sye*sze))  );
-    myy = sqrt((sys/(sxs*szs)) * (sye/(sxe*sze))  );
-    mzz = sqrt((szs/(sxs*sys)) * (sze/(sxe*sye))  );  
+%     mxx = sqrt((sxs/(sys*szs)) * (sxe/(sye*sze))  );
+%     myy = sqrt((sys/(sxs*szs)) * (sye/(sxe*sze))  );
+%     mzz = sqrt((szs/(sxs*sys)) * (sze/(sxe*sye))  );  
     
     %only mu^(-1/2) is needed in calculations 
-    mu = [mxx 0 0; 0 myy 0; 0 0 mzz];
+    mu = speye(3);%[mxx 0 0; 0 myy 0; 0 0 mzz];
     
 end
 
 %PML FUNCTIONS
-function sout = s(l,n,PML)
-    sigma1 = 10*2*lambda2/(4*pi*abs(PML));   
-    sout =  psi(l,n,PML) - 1i * sigma1 * eta(l,n,PML);
-end
+% function sout = s(l,n,PML)
+%     sigma1 = 10*2*lambda2/(4*pi*abs(PML));   
+%     sout =  psi(l,n,PML) - 1i * sigma1 * eta(l,n,PML);
+% end
 
 %coordinate stretching
 function psiout =  psi(l,n,PML)

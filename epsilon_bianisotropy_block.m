@@ -3,8 +3,6 @@ function eps_chi_chi_mu = epsilon_bianisotropy_block(pdir,lambda2)
 %A MATRIX i*[-EPSILON, BIANISOTROPY; BIANISOTROPY, MU]- 
 global nx ny nz NO DN NOUT dirfield file R c DPMLs DPMLe gain;
 [epsilon, mu] = epsilon_S_block(pdir,lambda2);
-%epsilon = speye(nx*ny*nz*3);
-%mu = speye(nx*ny*nz*3);
 bianisotropy = sparse(nx*ny*nz*3, nx*ny*nz*3);
 eps_chi_chi_mu = i* [-epsilon, bianisotropy; bianisotropy, mu];
 

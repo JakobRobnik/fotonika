@@ -1,4 +1,4 @@
-lambda = 50;
+lambda = 40;
 lastmax = 0;
 
 global file
@@ -12,7 +12,7 @@ for cycle=1:1
     %box size in px
     nx = 21; 
     ny = 21;
-    nz = 11; 
+    nz = 21;
     %droplet radius
     R = 70;
     %box size in nm
@@ -29,7 +29,7 @@ for cycle=1:1
     %ordinary refractive index and difference n_e - n_o
     NO = 1.5;%1.54;
     DN = 0.3;%0.17;
-    NOUT = 1.1;%1.47;
+    NOUT = 1.5;%1.47;
     %thickness of PML, s = at start of domain (i=0) e = end of domain (i=n)
     %either or both can be applied
     DPMLs = [0,0,0];
@@ -37,7 +37,7 @@ for cycle=1:1
     %which octant is simulated - symmetry conditions for E
     oct = 5;
     %number of modes we want to find
-    nr = 10;
+    nr = 4;
     %YES if you want to plot director field
     pdir = 'YES';
     %YES for reflective BC
@@ -47,23 +47,20 @@ for cycle=1:1
     %YES if you want to plot electric and magnetic field
     pfield = 'YES';
 
-    diagonalize= 'YES';
+    diagonalize= 'YES'
     %DRAWALL draws all the modes
     draw = 'DRAWALL';
     %dir field HELICONIC, HELICONICXY, HELICONICXZ, HELICONICYZ, RADIALD,
     %ISOTROPIC, ZERO ESCAPEDC FILE
     dirfield = 'HELICONIC';
     %centre of the droplet - ADD +1 FOR PML BOUNDARY
-    c = [(nx+1)/2, (ny+1)/2, (nz+1)/2];
+    c = [nx/2, ny/2, nz/2];
 
 
     sigma = 2*pi/lambda;
 
     outgen = strcat(num2str(nx),'x',num2str(ny),'x',num2str(nz));
-
-    %create log file
-    log = fopen(strcat(file,'/logfile_lda',num2str(lambda),'_',outgen,'.txt'),'w');
-    logfile(log,lambda);  
+ 
 
     if strcmp(diagonalize, 'YES')    
         disp('Starting diagonalization process');  
@@ -95,8 +92,6 @@ for cycle=1:1
         vecH = zeros(3*nx*ny*nz,1);
         vecE = zeros(3*nx*ny*nz,1);
 
-        fprintf(log,'\n Diagonalization complete\n');       
-
         %POSTPROCESS TOOLS
         for l = 1:nr
             values(1,l) = D(l,l);
@@ -117,7 +112,6 @@ for cycle=1:1
 
 
 
-            fprintf(log,'%d \t %f \t %f \t %f \t %f \n',l,values(1,l),lda,Q,dW);
         end 
 
 
@@ -144,24 +138,6 @@ for cycle=1:1
 
 end
 
-
-
-function logfile(log,lambda)
-    global nx ny nz Lx Ly Lz NO DN NOUT nr dirfield DPMLs DPMLe R c;
-    fprintf(log,'Size (px): %d x %d x %d \n',nx,ny,nz);
-    fprintf(log,'Box size (mum): %d x %d x %d \n',Lx,Ly,Lz);
-    fprintf(log,'N_e: %3f \n',NO+DN);
-    fprintf(log,'N_o: %3f \n',NO);
-    fprintf(log,'N_out: %f \n \n',NOUT);  
-    fprintf(log,'Nr. of modes: %d \n',nr);  
-    fprintf(log,'Desired lambda (mum): %f \n \n',lambda);
-    fprintf(log,'Director field: %s \n',dirfield);
-    fprintf(log,'Radius: %f \n \n',R);
-    fprintf(log,'DPML start: %f \t %f \t %f \n',DPMLs(1),DPMLs(2),DPMLs(3));
-    fprintf(log,'DPML end: %f \t %f \t %f \n',DPMLe(1),DPMLe(2),DPMLe(3));    
-    fprintf(log,'Drop center: %f \t %f \t %f \n',c(1),c(2),c(3));
-
-end
 
 %radius for droplets
 function f = r_qrt(i,j,k)
