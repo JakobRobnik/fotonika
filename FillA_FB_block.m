@@ -1,5 +1,5 @@
 %this function fills the matrix
-function [F, B] = FillA_FB_block(BC1)
+function double_rotor = FillA_FB_block(BC1)
 global nx ny nz;
 
 n=nx*ny*nz;
@@ -27,6 +27,8 @@ Bz = -Fz';
 F = [sparse(n,n) -Fz Fy; Fz sparse(n,n) -Fx; -Fy Fx sparse(n,n)];
 B = [sparse(n,n) -Bz By; Bz sparse(n,n) -Bx; -By Bx sparse(n,n)];
 
+double_rotor = [sparse(3*n, 3*n) B; F sparse(3*n, 3*n)];
+
 %INDEX COUNTER
 function f = ind(i,j,k)
     f = (k-1)*nx*ny + (j-1)*nx + (i-1) + 1;
@@ -40,6 +42,7 @@ function Dpout = Dp(n)
 end
 function fiout = fi(n)
     fiout = Dp(n) - D(n);
+    fiout(n, 1) = 1;
 end
 %CHANGE OF INDEX
 function f = dind(di,dj,dk,dcomp)

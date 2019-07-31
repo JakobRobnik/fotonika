@@ -1,4 +1,4 @@
- function [odivH,odHmax,odivE,odEmax,dW] = script_func_block(vecH,vecE,value,plot,cycle,outgen)
+ function [odivH,odHmax,odivE,odEmax,dW] = script_func_block(vecH,vecE,value,whichplot,cycle,outgen)
 %SCRIPT_FUNC calculates and draws the fields
 
 global nx ny nz dx dy dz Exx Exy Exz Eyy Eyz Ezz file pfield R DPMLs DPMLe c oct;
@@ -20,9 +20,9 @@ else
 end
     
 %which plane to draw
-px = nx/2;%fix(c(1) + di);
-py = ny/2;%fix(c(2) + dj); 
-pz = nz/2;%fix(c(3) + dk);
+px = (nx+1)/2;%fix(c(1) + di);
+py = (ny+1)/2;%fix(c(2) + dj); 
+pz = (nz+1)/2;%fix(c(3) + dk);
 
 % px = fix(nx/4);
 % py = fix(nx/4); 
@@ -52,7 +52,7 @@ Win = 0;
 for i = 1:nx
     for j = 1:ny
         for k = 1:nz
-            if strcmp(plot, 'INSIDE')
+            if strcmp(whichplot, 'INSIDE')
                 if r(i,j,k) > R 
                     Hx(i,j,k) = 0;
                     Hy(i,j,k) = 0;
@@ -64,7 +64,7 @@ for i = 1:nx
                     Hz(i,j,k) = vecH(3*(ind(i,j,k)) - 0,1);
                     intH(i,j,k) = Hx(i,j,k)^2 + Hy(i,j,k)^2 + Hz(i,j,k)^2;
                 end
-            elseif strcmp(plot, 'ALL')
+            elseif strcmp(whichplot, 'ALL')
 %                 if DPML(1) > 0 
 %                     psix = psi(i,nx,DPML(1));
 %                 else
@@ -85,12 +85,12 @@ for i = 1:nx
                 Hy(i,j,k) = vecH((ind(i,j,k))+ nx*ny*nz,1);% * psix * psiy * psiz;
                 Hz(i,j,k) = vecH((ind(i,j,k))+ 2*nx*ny*nz,1);% * psix * psiy * psiz;
                 intH(i,j,k) = Hx(i,j,k)^2 + Hy(i,j,k)^2 + Hz(i,j,k)^2;
-            elseif strcmp(plot, 'GUESS')
+            elseif strcmp(whichplot, 'GUESS')
                 Hx(i,j,k) = vecH((ind(i,j,k)),1);
                 Hy(i,j,k) = vecH((ind(i,j,k))+ nx*ny*nz,1);
                 Hz(i,j,k) = vecH((ind(i,j,k))+ 2*nx*ny*nz,1);
                 intH(i,j,k) = Hx(i,j,k)^2 + Hy(i,j,k)^2+ Hz(i,j,k)^2;
-            elseif strcmp(plot, 'NOPML')
+            elseif strcmp(whichplot, 'NOPML')
                 if i > nx - DPMLe(1) || j > ny - DPMLe(2) || k > nz - DPMLe(3) || i < DPMLs(1) || j < DPMLs(2) || k < DPMLe(3)
                     Hx(i,j,k) = 0;
                     Hy(i,j,k) = 0;
@@ -118,7 +118,7 @@ for i = 1:nx
                 end
                 intH(i,j,k) = Hx(i,j,k)^2 + Hy(i,j,k)^2 + Hz(i,j,k)^2;
             else
-                disp('Value of plot input argument is not correct.');
+                disp('Value of whichplot input argument is not correct.');
             end
             divH =+ dHx(Hx,i,j,k) + dHy(Hy,i,j,k) + dHz(Hz,i,j,k);
             dHmax = abs((dHx(Hx,i,j,k) + dHy(Hy,i,j,k) + dHz(Hz,i,j,k))/(sqrt(Hx(i,j,k)^2 + Hy(i,j,k)^2 + Hz(i,j,k)^2)));
@@ -132,7 +132,7 @@ end
 for i = 1:nx
     for j = 1:ny
         for k = 1:nz
-            if strcmp(plot, 'INSIDE')
+            if strcmp(whichplot, 'INSIDE')
                 if r(i,j,k) > R 
                     reEx(i,j,k) = 0;
                     reEy(i,j,k) = 0;
@@ -150,7 +150,7 @@ for i = 1:nx
                     imEz(i,j,k) = imag(vecE(3*(ind(i,j,k)) - 0,1));
                     intE(i,j,k) = reEx(i,j,k)^2 + reEy(i,j,k)^2 + reEz(i,j,k)^2;
                 end
-            elseif strcmp(plot, 'ALL')      
+            elseif strcmp(whichplot, 'ALL')      
                 
                 reEx(i,j,k) = real(vecE((ind(i,j,k)),1));
                 reEy(i,j,k) = real(vecE((ind(i,j,k))+ nx*ny*nz,1));
@@ -163,7 +163,7 @@ for i = 1:nx
                     Win =+ Ex(i,j,k)^2 + Ey(i,j,k)^2+ Ez(i,j,k)^2;
                 end
                 W =+ Ex(i,j,k)^2 + Ey(i,j,k)^2+ Ez(i,j,k)^2;
-            elseif strcmp(plot, 'NOPML')
+            elseif strcmp(whichplot, 'NOPML')
                 if i > nx - DPMLe(1) || j > ny - DPMLe(2) || k > nz - DPMLe(3) || i < DPMLs(1) || j < DPMLs(2) || k < DPMLs(3)
                     reEx(i,j,k) = 0;
                     reEy(i,j,k) = 0;
@@ -184,7 +184,7 @@ for i = 1:nx
                     Win =+ reEx(i,j,k)^2 + reEy(i,j,k)^2+ reEz(i,j,k)^2;
                 end
                 W =+ reEx(i,j,k)^2 + reEy(i,j,k)^2+ reEz(i,j,k)^2;  
-            elseif strcmp(plot, 'GUESS')
+            elseif strcmp(whichplot, 'GUESS')
                 reEx(i,j,k) = real(vecE((ind(i,j,k)),1));
                 reEy(i,j,k) = real(vecE((ind(i,j,k))+ nx*ny*nz,1));
                 reEz(i,j,k) = real(vecE((ind(i,j,k))+ 2*nx*ny*nz,1));
@@ -193,7 +193,7 @@ for i = 1:nx
                 imEz(i,j,k) = imag(vecE((ind(i,j,k))+ 2*nx*ny*nz,1));               
                 intE(i,j,k) = reEx(i,j,k)^2 + reEy(i,j,k)^2+ reEz(i,j,k)^2;
             else
-                disp('Value of plot input argument must be ALL or INSIDE');
+                disp('Value of whichplot input argument must be ALL or INSIDE');
             end
             divE =+ dHx(reEx,i,j,k) +dHy(reEy,i,j,k) + dHz(reEz,i,j,k);
             dEmax = abs((dHx(reEx,i,j,k) + dHy(reEy,i,j,k) + dHz(reEz,i,j,k))/(sqrt(reEx(i,j,k)^2 + reEy(i,j,k)^2 + reEz(i,j,k)^2)));
@@ -204,12 +204,12 @@ for i = 1:nx
     end
 end
 
-Q = real(sqrt(value)) / (2*imag(sqrt(value)));
+Q = real(value / (2*imag(value)));
 
 %PLOTS ENTIRE AREA IF ONLY ONE QUADRANT IS SIMULATED
-if abs(Q) > 0
-    plotall(reEx+4i*imEx,reEy+1i*imEy,reEz+1i*imEz,value,oct,outgen,cycle,Q);
-end
+% if abs(Q) > 0
+%     plotall(reEx+4i*imEx,reEy+1i*imEy,reEz+1i*imEz,value,oct,outgen,cycle,Q);
+% end
 
 dW = Win/W;
 odivH = divH;
@@ -286,7 +286,7 @@ if strcmp(pfield, 'YES')
     hp4 = get(subplot(3,3,6),'Position');
     colorbar('Position', [1.33*hp4(1)  hp4(2)/2  hp4(3)/10  3*hp4(4)])
 
-    %nariše fig1 in subfigure
+    %narise fig1 in subfigure
     clear zlim
     fig2=figure;
     set(fig2,'visible','off');
@@ -304,30 +304,22 @@ if strcmp(pfield, 'YES')
     hp4 = get(subplot(3,3,6),'Position');
     colorbar('Position', [1.33*hp4(1)  hp4(2)/2  hp4(3)/10  3*hp4(4)])
 
-    % rise odvisnost v eni smeri
-%     fig3=figure;
-%     set(fig3,'visible','off');
-%     for i = 1:9
-%        subplot(3,3,i);
-%        plot(eval(['l', num2str(i)]));
-%        ylim([1.1*min(minar) 1.1*max(maxar)])
-%        title(titles2(i))
-%     end
+
 
     %narise intenziteto
-    clear zlim
-    fig3=figure;
-    set(fig3,'visible','off');
-    for i = 1:3
-       subplot(1,3,i);
-       surf(eval(['intH', num2str(i)]),'edgecolor','none');
-       zlim([1.1*min(minint) 1.1*max(maxint)]);
-       caxis([1.1*min(minint) 1.1*max(maxint)]);
-       title(titlesintH(i))
-       daspect([1 1 1])
-       %shading interp;
-       view(2)
-    end
+%     clear zlim
+%     fig3=figure;
+%     set(fig3,'visible','off');
+%     for i = 1:3
+%        subplot(1,3,i);
+%        surf(eval(['intH', num2str(i)]),'edgecolor','none');
+%        zlim([1.1*min(minint) 1.1*max(maxint)]);
+%        caxis([1.1*min(minint) 1.1*max(maxint)]);
+%        title(titlesintH(i))
+%        daspect([1 1 1])
+%        %shading interp;
+%        view(2)
+%     end
 
     clear s1 s2 s3 s4 s5 s6 s7 s8 s9
     clear l1 l2 l3 l4 l5 l6 l7 l8 l9
@@ -394,21 +386,31 @@ if strcmp(pfield, 'YES')
 
     end
 
+%     rise odvisnost v eni smeri
+    fig3=figure;
+    set(fig3,'visible','off');
+    for i = 1:9
+       subplot(3,3,i);
+       plot(eval(['lE', num2str(i)]));
+       ylim([1.1*min(minar) 1.1*max(maxar)])
+       title(titles2(i))
+    end
+    
     %narise fig1 in subfigure
-% %     clear zlim
-% %     fig4=figure;
-% %     set(fig4,'visible','off');
-% %     for i = 1:9
-% %        subplot(3,3,i);
-% %        surf(eval(['sE', num2str(i)]));
-% %        zlim([1.1*min(minar) 1.1*max(maxar)]);
-% %        caxis([1.1*min(minar) 1.1*max(maxar)]);
-% %        title(titles1(i))
-% %     end
-% % 
-% %     %nastavi pozicijo colormap legende
-% %     hp4 = get(subplot(3,3,6),'Position');
-% %     colorbar('Position', [1.33*hp4(1)  hp4(2)/2  hp4(3)/10  3*hp4(4)])
+    clear zlim
+    fig4=figure;
+    set(fig4,'visible','off');
+    for i = 1:9
+       subplot(3,3,i);
+       surf(eval(['sE', num2str(i)]));
+       zlim([1.1*min(minar) 1.1*max(maxar)]);
+       caxis([1.1*min(minar) 1.1*max(maxar)]);
+       title(titles1(i))
+    end
+
+    %nastavi pozicijo colormap legende
+    hp4 = get(subplot(3,3,6),'Position');
+    colorbar('Position', [1.33*hp4(1)  hp4(2)/2  hp4(3)/10  3*hp4(4)])
 
     %narise fig1 in subfigure
     clear zlim
@@ -431,16 +433,16 @@ if strcmp(pfield, 'YES')
 
     
 %     % narise odvisnost v eni smeri
-%     fig7=figure;
-%     set(fig7,'visible','off');
-%     for i = 1:9
-%        subplot(3,3,i);
-%        plot(eval(['lE', num2str(i)]));
-%        ylim([1.1*min(minar) 1.1*max(maxar)]);
-%        title(titles2(i))
-%     end
+    fig7=figure;
+    set(fig7,'visible','off');
+    for i = 1:9
+       subplot(3,3,i);
+       plot(eval(['lE', num2str(i)]));
+       ylim([1.1*min(minar) 1.1*max(maxar)]);
+       title(titles2(i))
+    end
 
-    %nariše intenziteta
+    %narise intenziteto
     clear zlim
     fig6=figure;
     set(fig6,'visible','off');
@@ -460,24 +462,24 @@ if strcmp(pfield, 'YES')
 
     %WHERE TO SAVE THEM
     if isempty(file) == 0
-        lam = real(2*pi/sqrt(value));
-        out = strcat(file,'/',num2str(lam),'_',outgen,'_',plot,'_');
+        lam = real(2*pi/value);
+        out = strcat(file,'/',num2str(lam),'_',outgen,'_',whichplot,'_');
 %         print(fig1,strcat(out,'H2D'),'-dpng');
 %         pause(0.5)
 %         print(fig2,strcat(out,'H2Dplane','.png'),'-dpng');
 %         pause(1)
-        print(fig3,strcat(out,'Hintensty',num2str(cycle),'.png'),'-dpng');
+        print(fig3, strcat(out,'Hintensty', num2str(cycle), '.png'),'-dpng');
         pause(1) 
-%         print(fig3,strcat(out,'H1D','.png'),'-dpng');
-%         pause(0.5)        
-%         print(fig4,strcat(out,'E2D_cycle',num2str(cycle),'.png'),'-dpng');
-%         pause(1) 
-%         print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
-%         pause(1) 
+        print(fig3, strcat(out,'H1D','.png'), '-dpng');
+        pause(0.5)        
+        print(fig4,strcat(out,'E2D_cycle',num2str(cycle),'.png'),'-dpng');
+        pause(1) 
+        print(fig5,strcat(out,'E2Dplane_n',num2str(cycle),'.png'),'-dpng');
+        pause(1) 
         print(fig6,strcat(out,'Eintensty',num2str(cycle),'.png'),'-dpng');
         pause(1) 
-%         print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
-%         pause(1) 
+        print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
+        pause(1) 
     end
 end
 

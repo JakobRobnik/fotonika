@@ -251,9 +251,12 @@ function [f1,f2,f3] = dir(i,j,k)
         f3 = f31/sqrt(f11^2+f21^2+f31^2);
 %ISOTROPIC
     elseif strcmp(dirfield, 'ISOTROPIC')
-           f1 = -(i-c(1))/(sqrt((i-c(1))^2 + (j-c(2))^2 )+1E-12);
-           f2 = -(j-c(2))/(sqrt((i-c(1))^2 + (j-c(2))^2 )+1E-12);
-           f3 = 0; 
+           f1 = 1;
+           f2 = 1;
+           f3 = 1; 
+%            f1 = -(i-c(1))/(sqrt((i-c(1))^2 + (j-c(2))^2 )+1E-12);
+%            f2 = -(j-c(2))/(sqrt((i-c(1))^2 + (j-c(2))^2 )+1E-12);
+%            f3 = 0; 
 %RADIAL DROPLET
     elseif strcmp(dirfield, 'ISOSPHERE')
        if r(i,j,k,c) < R 
@@ -458,7 +461,7 @@ function [eps,mu] = eblock(i,j,k)
     end
     
     %i+1/2 for exx eyx ezx   
-    [dir1,dir2,dir3]=dir(i+1/2,j,k);
+    [dir1,dir2,dir3]=dir(i + 1/2,j,k);
 %     Qxx = (3*dir1*dir1 * (1 + 2*G/(3*deps(i+1/2,j,k))) -1)/2;
 %     Qxy = (3*dir1*dir2 * (1 + 2*G/(3*deps(i+1/2,j,k))))/2;
 %     Qxz = (3*dir1*dir3 * (1 + 2*G/(3*deps(i+1/2,j,k))))/2;
@@ -481,7 +484,7 @@ function [eps,mu] = eblock(i,j,k)
 %    DQ(3,3) = DQ(3,3) * (1 + G/(DQ(3,3)*deps(i+1/2,j,k)));
 %     Qten = TQ * DQ * TQ';
     
-    epsX = (deps(i+1/2,j,k) * Qten + (epsO(i+1/2,j,k)+deps(i+1/2,j,k)/3) * eye (3)); 
+    epsX = (deps(i + 1/2,j,k) * Qten + (epsO(i + 1/2,j,k)+deps(i + 1/2,j,k)/3) * eye (3)); 
     epsX(1,1) = epsX(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
     epsX(1,2) = epsX(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
     epsX(1,3) = epsX(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
@@ -494,7 +497,7 @@ function [eps,mu] = eblock(i,j,k)
 
 
     %j+1/2 for exy eyy ezy
-    [dir1,dir2,dir3]=dir(i,j+1/2,k);
+    [dir1,dir2,dir3]=dir(i,j+ 1/2,k);
     Qxx = (dir1*dir1 * 3 -1)/2;
     Qxy = (dir1*dir2 * 3)/2;
     Qxz = (dir1*dir3 * 3)/2;
@@ -510,7 +513,7 @@ function [eps,mu] = eblock(i,j,k)
 %        DQ(3,3) = DQ(3,3) * (1 + G/(DQ(3,3)*deps(i,j+1/2,k)));
 %     Qten = TQ * DQ * TQ';
     
-    epsY = (deps(i,j+1/2,k) * Qten + (epsO(i,j+1/2,k)+deps(i,j+1/2,k)/3) * eye (3)); 
+    epsY = (deps(i,j+ 1/2,k) * Qten + (epsO(i,j+ 1/2,k)+deps(i,j+ 1/2,k)/3) * eye (3)); 
     epsY(1,1) = epsY(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
     epsY(1,2) = epsY(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
     epsY(1,3) = epsY(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
@@ -523,7 +526,7 @@ function [eps,mu] = eblock(i,j,k)
    
     
     %k+1/2 for exz eyz ezz
-    [dir1,dir2,dir3]=dir(i,j,k+1/2);
+    [dir1,dir2,dir3]=dir(i,j,k+ 1/2);
     Qxx = (dir1*dir1 * 3 -1)/2;
     Qxy = (dir1*dir2 * 3)/2;
     Qxz = (dir1*dir3 * 3)/2;
@@ -539,7 +542,7 @@ function [eps,mu] = eblock(i,j,k)
 %    DQ(3,3) = DQ(3,3) * (1 + G/(DQ(3,3)*deps(i,j,k+1/2)));
 %     Qten = TQ * DQ * TQ';
     
-    epsZ = (deps(i,j,k+1/2) * Qten + (epsO(i,j,k+1/2)+deps(i,j,k+1/2)/3) * eye (3)); 
+    epsZ = (deps(i,j,k+ 1/2) * Qten + (epsO(i,j,k+ 1/2)+deps(i,j,k+ 1/2)/3) * eye (3)); 
     epsZ(1,1) = epsZ(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
     epsZ(1,2) = epsZ(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
     epsZ(1,3) = epsZ(1,3) * (sxs*sys/szs) * (sxe*sye/sze);

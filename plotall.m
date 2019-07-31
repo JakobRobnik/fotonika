@@ -317,17 +317,17 @@ pz = fix(nz);
         d = 1;
     end
     
-    S12phi1 = real(squeeze(S12phi(:,:,pz - fix(nz/2))));  
+    S12phi1 = real(squeeze(S12phi(:,:,pz)));  
     S12phi2 = real(squeeze(S12phi(:,:,pz)));    
-    S12phi3 = real(squeeze(S12phi(:,:,pz + fix(nz/2))));
+    S12phi3 = real(squeeze(S12phi(:,:,pz )));
     
-    intE1 = real(squeeze(intE(:,:,pz - fix(nz/2))));  
+    intE1 = real(squeeze(intE(:,:,pz )));  
     intE2 = real(squeeze(intE(:,:,pz)));
-    intE3 = real(squeeze(intE(:,:,pz + fix(nz/2))));
+    intE3 = real(squeeze(intE(:,:,pz )));
     
-    intE31 = real(squeeze(intE(:,:,2*nz - fix(pi/(2*sqrt(real(value))))))); 
-    sE11 = real(squeeze(Ex(:,:,2*nz - fix(pi/(2*sqrt(real(value)))))));
-    sE21 = real(squeeze(Ey(:,:,2*nz - fix(pi/(2*sqrt(real(value)))))));
+    intE31 = real(squeeze(intE(:,:,2*nz ))); 
+    sE11 = real(squeeze(Ex(:,:,2*nz )));
+    sE21 = real(squeeze(Ey(:,:,2*nz )));
 %     intE31 = real(squeeze(intE(:,:,1))); 
 %     sE11 = real(squeeze(Ex(:,:,1)));
 %     sE21 = real(squeeze(Ey(:,:,1)));
@@ -335,12 +335,12 @@ pz = fix(nz);
 %     intE2 = real(squeeze(intE(:,:,40)));
 %     intE3 = real(squeeze(intE(:,:,51)));   
 
-    intE4 = real(squeeze(intE(:,py - fix(ny/2),:)));  
+    intE4 = real(squeeze(intE(:,py ));  
     intE5 = real(squeeze(intE(:,py,:)));
-    intE6 = real(squeeze(intE(:,py + fix(ny/2),:)));  
-    intE7 = real(squeeze(intE(px - fix(nx/2),:,:)));  
+    intE6 = real(squeeze(intE(:,py )));  
+    intE7 = real(squeeze(intE(px )));  
     intE8 = real(squeeze(intE(px,:,:)));
-    intE9 = real(squeeze(intE(px + fix(nx/2),:,:)));  
+    intE9 = real(squeeze(intE(px ,:,:)));  
     
     titles1 = ["Ex(x,y)","Ey(x,y)","Ez(x,y)","Ex(x,z)","Ey(x,z)","Ez(x,z)","Ex(y,z)","Ey(y,z)","Ez(y,z)"];
     titles2 = ["Ex(x)","Ey(x)","Ez(x)","Ex(y)","Ey(y)","Ez(y)","Ex(z)","Ey(z)","Ez(z)"];
