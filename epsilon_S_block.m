@@ -1,4 +1,4 @@
-function [Eout,Mout] = epsilon_S_block(pdir,lambda2)
+function [Eout,Mout,Bout] = epsilon_S_block(pdir,lambda2)
 %THIS FUNCTION CALCULATES THE EPSILON MATRIX ELEMENT THROUGHT THE ENTIRE
 %DOMAIN - 
 
@@ -101,13 +101,17 @@ Mxxv = zeros(n,1);
 Myyv = zeros(n,1); 
 Mzzv = zeros(n,1);
 
+Bxxv = zeros(n,1);
+Byyv = zeros(n,1); 
+Bzzv = zeros(n,1);
+
 
 %FILL THE ARRAYS OF EPSILON COMPONENTS
 for i = 1:nx
     for j = 1:ny
         for k = 1:nz
             
-            [D1,DM1] = eblock(i,j,k);
+            [D1,DM1,DB1] = eblock(i,j,k);
             
             % epsilon and mu blocks are all diagonal matrices
             Di(ind(i,j,k)) = ind(i,j,k);
@@ -126,13 +130,16 @@ for i = 1:nx
             Ezyv(ind(i,j,k)) = D1(3,2);
             Ezzv(ind(i,j,k)) = D1(3,3); 
               
-            %permeability matrix with PML
+            %permeability matrix
             Mxxv(ind(i,j,k)) = DM1(1,1); 
             Myyv(ind(i,j,k)) = DM1(2,2); 
             Mzzv(ind(i,j,k)) = DM1(3,3); 
             
-             
-            
+            %bianisotropy matrix
+            Bxxv(ind(i,j,k)) = DB1(1,1); 
+            Byyv(ind(i,j,k)) = DB1(2,2); 
+            Bzzv(ind(i,j,k)) = DB1(3,3); 
+      
         end
     end
 end
@@ -153,10 +160,14 @@ Mxx = sparse(Di,Dj,Mxxv);
 Myy = sparse(Di,Dj,Myyv);
 Mzz = sparse(Di,Dj,Mzzv);
 
+Bxx = sparse(Di,Dj,Bxxv);
+Byy = sparse(Di,Dj,Byyv);
+Bzz = sparse(Di,Dj,Bzzv);
+
 
 Eout = [Exx Exy Exz; Eyx Eyy Eyz; Ezx Ezy Ezz];
 Mout = [Mxx sparse(n,n) sparse(n,n); sparse(n,n) Myy sparse(n,n); sparse(n,n) sparse(n,n) Mzz];
-
+Bout = [Bxx sparse(n,n) sparse(n,n); sparse(n,n) Byy sparse(n,n); sparse(n,n) sparse(n,n) Bzz];
 
 %define space dependance of refractive index
 function f = nord(i,j,k)
@@ -342,7 +353,7 @@ end
 
 %calculates components of epsilon from director field, accounts for Yee
 %lattice shifts
-function [eps,mu] = eblock(i,j,k)
+function [eps, mu, bian] = eblock(i,j,k)
 %     
 %     %PML factors
 %     if DPMLs(1) == 0
@@ -422,6 +433,7 @@ function [eps,mu] = eblock(i,j,k)
     
     %only mu^(-1/2) is needed in calculations 
     mu = speye(3);%[mxx 0 0; 0 myy 0; 0 0 mzz];
+    bian = 0.1*speye(3);
     
 end
 

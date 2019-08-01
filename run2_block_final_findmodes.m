@@ -1,4 +1,4 @@
-lambda = 40;
+lambda = 30;
 lastmax = 0;
 
 global file
@@ -7,17 +7,15 @@ file =  strcat('C:/Users/USER/Documents/Physics/fotonika');
 %run multiple cycles of diagonalisation
 for cycle=1:1
 
-    global nx ny nz Lx Ly Lz dx dy dz NO DN NOUT nr dirfield pfield ref refz R DPMLe DPMLs oct c gain;
+    global nx ny nz Lx Ly Lz dx dy dz NO DN NOUT nr pfield ref refz R DPMLe DPMLs oct c gain;
 
-    %box size in px
-    nx = 21; 
+    nx = 21; %box size in pixels
     ny = 21;
-    nz = 21;
-    %droplet radius
-    R = 70;
-    %box size in nm
+    nz = 5;
+    
+    R = 70; %droplet radius
     Lx = nx ;
-    Ly = ny ;   %da vse merimo v enotah radija
+    Ly = ny ;
     Lz = nz ;
     %pixel size
     dx = 1;
@@ -27,9 +25,9 @@ for cycle=1:1
     % already a combination of g * lambda
     gain = 0; %500 * 10^(-3);
     %ordinary refractive index and difference n_e - n_o
-    NO = 1.5;%1.54;
-    DN = 0.3;%0.17;
-    NOUT = 1.5;%1.47;
+    NO = 1.2; %1.54;
+    DN = 0.3; %0.17;
+    NOUT = 1; %1.47;
     %thickness of PML, s = at start of domain (i=0) e = end of domain (i=n)
     %either or both can be applied
     DPMLs = [0,0,0];
@@ -37,9 +35,7 @@ for cycle=1:1
     %which octant is simulated - symmetry conditions for E
     oct = 5;
     %number of modes we want to find
-    nr = 4;
-    %YES if you want to plot director field
-    pdir = 'YES';
+    nr = 10;
     %YES for reflective BC
     ref = 'NO';
     refz = 'NO';
@@ -47,12 +43,15 @@ for cycle=1:1
     %YES if you want to plot electric and magnetic field
     pfield = 'YES';
 
-    diagonalize= 'YES'
+    diagonalize = 'YES'
     %DRAWALL draws all the modes
     draw = 'DRAWALL';
-    %dir field HELICONIC, HELICONICXY, HELICONICXZ, HELICONICYZ, RADIALD,
-    %ISOTROPIC, ZERO ESCAPEDC FILE
-    dirfield = 'HELICONIC';
+    
+    epstype = 'HELICONIC'; %dir field HELICONIC, HELICONICXY, HELICONICXZ, HELICONICYZ, RADIALD,
+    %                                  ISOTROPIC, ZERO, ESCAPEDC, FILE, KHANIKAEV
+    mutype = 'HELICONIC';
+    biantype = 'KHANIKAEV';
+    
     %centre of the droplet - ADD +1 FOR PML BOUNDARY
     c = [nx/2, ny/2, nz/2];
 
@@ -60,16 +59,15 @@ for cycle=1:1
     sigma = 2*pi/lambda;
 
     outgen = strcat(num2str(nx),'x',num2str(ny),'x',num2str(nz));
- 
 
     if strcmp(diagonalize, 'YES')    
         disp('Starting diagonalization process');  
 
         %write epsilon matrix
-        B1 = epsilon_bianisotropy_block(pdir,lambda);
+        B1 = epsilon_bianisotropy_block(pdir, epstype, biantype, mutype, lambda);
 
         %write derivative matrix
-        A1 = FillA_S_block(BC1);
+        A1 = FillA_FB_block(BC1);
 
         %transformation to reduce bandwidth
         %p = symrcm(A1);
@@ -94,7 +92,7 @@ for cycle=1:1
 
         %POSTPROCESS TOOLS
         for l = 1:nr
-            values(1,l) = D(l,l);
+             values(1,l) = D(l,l);
             Q = 0;%real(sqrt(values(1,l))) / (2*imag(sqrt(values(1,l))));
             X = [num2str(l),'  ',num2str(values(1,l)),'  ',num2str(2*pi/values(1,l)),'  ',num2str(Q)];
         end 
@@ -109,8 +107,6 @@ for cycle=1:1
 
             lda = 2*pi/values(1,l)
             Q = 0;%real(sqrt(values(1,l))) / (2*imag(sqrt(values(1,l))));
-
-
 
         end 
 
@@ -144,3 +140,4 @@ function f = r_qrt(i,j,k)
        f = sqrt((i)^2 + (j)^2 + (k)^2);
 end
 
+%martina lebar

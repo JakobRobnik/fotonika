@@ -27,7 +27,7 @@ Bz = -Fz';
 F = [sparse(n,n) -Fz Fy; Fz sparse(n,n) -Fx; -Fy Fx sparse(n,n)];
 B = [sparse(n,n) -Bz By; Bz sparse(n,n) -Bx; -By Bx sparse(n,n)];
 
-double_rotor = [sparse(3*n, 3*n) B; F sparse(3*n, 3*n)];
+double_rotor = [sparse(3*n, 3*n) F; F sparse(3*n, 3*n)];
 
 %INDEX COUNTER
 function f = ind(i,j,k)

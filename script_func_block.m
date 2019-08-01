@@ -218,24 +218,24 @@ odEmax = maxdivE;
 
 if strcmp(pfield, 'YES')
    % FUNCTIONS TO PLOT H
-    s1 = real(squeeze(Hx(:,:,pz)));
-    s2 = real(squeeze(Hy(:,:,pz)));
-    s3 = real(squeeze(Hz(:,:,pz)));
-    s4 = real(squeeze(Hx(:,py,:)));
-    s5 = real(squeeze(Hy(:,py,:)));
-    s6 = real(squeeze(Hz(:,py,:)));
-    s7 = real(squeeze(Hx(px,:,:)));
-    s8 = real(squeeze(Hy(px,:,:)));
-    s9 = real(squeeze(Hz(px,:,:)));
-    l1 = real(squeeze(Hx(:,py,pz)));
-    l2 = real(squeeze(Hy(:,py,pz)));
-    l3 = real(squeeze(Hz(:,py,pz)));
-    l4 = real(squeeze(Hx(px,:,pz)));
-    l5 = real(squeeze(Hy(px,:,pz)));
-    l6 = real(squeeze(Hz(px,:,pz)));
-    l7 = real(squeeze(Hx(px,py,:)));
-    l8 = real(squeeze(Hy(px,py,:)));
-    l9 = real(squeeze(Hz(px,py,:)));
+    s1 = abs(squeeze(Hx(:,:,pz)));
+    s2 = abs(squeeze(Hy(:,:,pz)));
+    s3 = abs(squeeze(Hz(:,:,pz)));
+    s4 = abs(squeeze(Hx(:,py,:)));
+    s5 = abs(squeeze(Hy(:,py,:)));
+    s6 = abs(squeeze(Hz(:,py,:)));
+    s7 = abs(squeeze(Hx(px,:,:)));
+    s8 = abs(squeeze(Hy(px,:,:)));
+    s9 = abs(squeeze(Hz(px,:,:)));
+    l1 = abs(squeeze(Hx(:,py,pz)));
+    l2 = abs(squeeze(Hy(:,py,pz)));
+    l3 = abs(squeeze(Hz(:,py,pz)));
+    l4 = abs(squeeze(Hx(px,:,pz)));
+    l5 = abs(squeeze(Hy(px,:,pz)));
+    l6 = abs(squeeze(Hz(px,:,pz)));
+    l7 = abs(squeeze(Hx(px,py,:)));
+    l8 = abs(squeeze(Hy(px,py,:)));
+    l9 = abs(squeeze(Hz(px,py,:)));
     
     if c(3) > nz/2
         d = -1;
@@ -243,9 +243,9 @@ if strcmp(pfield, 'YES')
         d = 1;
     end
     
-    intH1 = real(squeeze(intH(:,:,pz)));  
-    intH2 = real(squeeze(intH(:,:,pz )));
-    intH3 = real(squeeze(intH(:,:,pz )));
+    intH1 = abs(squeeze(intH(:,:,pz)));  
+    intH2 = abs(squeeze(intH(:,:,pz )));
+    intH3 = abs(squeeze(intH(:,:,pz )));
     
     
     titles1 = ["Hx(x,y)","Hy(x,y)","Hz(x,y)","Hx(x,z)","Hy(x,z)","Hz(x,z)","Hx(y,z)","Hy(y,z)","Hz(y,z)"];
@@ -349,15 +349,15 @@ if strcmp(pfield, 'YES')
     end
     
     
-    intE1 = real(squeeze(intE(:,:,pz)));  
-    intE2 = real(squeeze(intE(:,:,pz )));
-    intE3 = real(squeeze(intE(:,:,pz )));   
-    intE4 = real(squeeze(intE(:,pz,:)));  
-    intE5 = real(squeeze(intE(:,pz ,:)));
-    intE6 = real(squeeze(intE(:,pz ,:)));  
-    intE7 = real(squeeze(intE(pz,:,:)));  
-    intE8 = real(squeeze(intE(pz ,:,:)));
-    intE9 = real(squeeze(intE(pz ,:,:)));  
+    intE1 = abs(squeeze(intE(:,:,pz)));  
+    intE2 = abs(squeeze(intE(:,:,pz )));
+    intE3 = abs(squeeze(intE(:,:,pz )));   
+    intE4 = abs(squeeze(intE(:,pz,:)));  
+    intE5 = abs(squeeze(intE(:,pz ,:)));
+    intE6 = abs(squeeze(intE(:,pz ,:)));  
+    intE7 = abs(squeeze(intE(pz,:,:)));  
+    intE8 = abs(squeeze(intE(pz ,:,:)));
+    intE9 = abs(squeeze(intE(pz ,:,:)));  
     
     titles1 = ["Ex(x,y)","Ey(x,y)","Ez(x,y)","Ex(x,z)","Ey(x,z)","Ez(x,z)","Ex(y,z)","Ey(y,z)","Ez(y,z)"];
     titles2 = ["Ex(x)","Ey(x)","Ez(x)","Ex(y)","Ey(y)","Ez(y)","Ex(z)","Ey(z)","Ez(z)"];
@@ -460,7 +460,7 @@ if strcmp(pfield, 'YES')
 
     %WHERE TO SAVE THEM
     if isempty(file) == 0
-        lam = real(2*pi/value);
+        lam = abs(2*pi/value);
         out = strcat(file,'/',num2str(lam),'_',outgen,'_',whichplot,'_');
 %         print(fig1,strcat(out,'H2D'),'-dpng');
 %         pause(0.5)
