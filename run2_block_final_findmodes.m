@@ -7,13 +7,13 @@ file =  strcat('C:/Users/USER/Documents/Physics/fotonika');
 %run multiple cycles of diagonalisation
 for cycle=1:1
 
-    global nx ny nz Lx Ly Lz dx dy dz NO DN NOUT nr pfield ref refz R DPMLe DPMLs oct c gain;
+    global nx ny nz Lx Ly Lz dx dy dz NO DN NOUT nr pfield ref refz R DPMLe DPMLs oct c gain Delta;
 
     nx = 21; %box size in pixels
     ny = 21;
     nz = 5;
     
-    R = 70; %droplet radius
+    R = 5; %droplet radius
     Lx = nx ;
     Ly = ny ;
     Lz = nz ;
@@ -24,6 +24,7 @@ for cycle=1:1
     % > 0 for gain inside droplet gain in pixels
     % already a combination of g * lambda
     gain = 0; %500 * 10^(-3);
+    Delta = 0.1 %parameter in Khanikaev bianisotropy
     %ordinary refractive index and difference n_e - n_o
     NO = 1.2; %1.54;
     DN = 0.3; %0.17;
@@ -64,7 +65,7 @@ for cycle=1:1
         disp('Starting diagonalization process');  
 
         %write epsilon matrix
-        B1 = epsilon_bianisotropy_block(pdir, epstype, biantype, mutype, lambda);
+        B1 = epsilon_bianisotropy_mu_block(epstype, biantype, mutype, lambda);
 
         %write derivative matrix
         A1 = FillA_FB_block(BC1);

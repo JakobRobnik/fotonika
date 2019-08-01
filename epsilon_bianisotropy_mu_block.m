@@ -1,8 +1,8 @@
-function eps_chi_chi_mu = epsilon_bianisotropy_mu_block(pdir, epstype, biantype, mutype, lambda2)
+function eps_chi_chi_mu = epsilon_bianisotropy_mu_block(epstype, biantype, mutype, lambda2)
 %THIS FUNCTION CALCULATES THE EPSILON MATRIX ELEMENT THROUGHT THE ENTIRE
 %DOMAIN - 
 
-global nx ny nz NO DN NOUT file R c DPMLs DPMLe gain;
+global nx ny nz NO DN NOUT file R c DPMLs DPMLe gain Delta;
 
 n = nx*ny*nz;
 
@@ -114,8 +114,29 @@ Ezy = sparse(Di,Dj,Ezyv);
 Ezz = sparse(Di,Dj,Ezzv);
 
 Mxx = sparse(Di,Dj,Mxxv);
+Mxy = sparse(Di,Dj,Mxyv);
+Mxz = sparse(Di,Dj,Mxzv);
+
+Myx = sparse(Di,Dj,Myxv);
 Myy = sparse(Di,Dj,Myyv);
+Myz = sparse(Di,Dj,Myzv);
+
+Mzx = sparse(Di,Dj,Mzxv);
+Mzy = sparse(Di,Dj,Mzyv);
 Mzz = sparse(Di,Dj,Mzzv);
+
+Bxx = sparse(Di,Dj,Bxxv);
+Bxy = sparse(Di,Dj,Bxyv);
+Bxz = sparse(Di,Dj,Bxzv);
+
+Byx = sparse(Di,Dj,Byxv);
+Byy = sparse(Di,Dj,Byyv);
+Byz = sparse(Di,Dj,Byzv);
+
+Bzx = sparse(Di,Dj,Bzxv);
+Bzy = sparse(Di,Dj,Bzyv);
+Bzz = sparse(Di,Dj,Bzzv);
+
 
 Rxp = 1/2*sparse(Rxpi,Rxpj,Rxpv);
 Ryp = 1/2*sparse(Rypi,Rypj,Rypv);
@@ -138,13 +159,13 @@ Mout = [        Mxx, Rxm*Ryp*Mxy,     Rxm*Rzp*Mxz;
         Rym*Rxp*Myx,         Myy,     Rym*Rzp*Myz;
         Rzm*Rxp*Mzx, Rzm*Ryp*Mzy,             Mzz];
     
-BoutE = conj([Rxm*Ryp*Rzp*Bexx, Rxp*Rym*Rzp*Beyx, Rxp*Ryp*Rzm*Bezx;
-              Rxm*Ryp*Rzp*Bexy, Rxp*Rym*Rzp*Beyy, Rxp*Ryp*Rzm*Bezy;
-              Rxm*Ryp*Rzp*Bexz, Rxp*Rym*Rzp*Beyz, Rxp*Ryp*Rzm*Bezz]);
+BoutE = conj([Rxm*Ryp*Rzp*Bxx, Rxp*Rym*Rzp*Byx, Rxp*Ryp*Rzm*Bzx;
+              Rxm*Ryp*Rzp*Bxy, Rxp*Rym*Rzp*Byy, Rxp*Ryp*Rzm*Bzy;
+              Rxm*Ryp*Rzp*Bxz, Rxp*Rym*Rzp*Byz, Rxp*Ryp*Rzm*Bzz]);
 
-BoutH = [Rxp*Rym*Rzm*Bhxx, Rxm*Ryp*Rzm*Bhxy, Rxm*Rym*Rzp*Bhxz;
-         Rxp*Rym*Rzm*Bhyx, Rxm*Ryp*Rzm*Bhyy, Rxm*Rym*Rzp*Bhyz;
-         Rxp*Rym*Rzm*Bhzx, Rxm*Ryp*Rzm*Bhzy, Rxm*Rym*Rzp*Bhzz];
+BoutH = [Rxp*Rym*Rzm*Bxx, Rxm*Ryp*Rzm*Bxy, Rxm*Rym*Rzp*Bxz;
+         Rxp*Rym*Rzm*Byx, Rxm*Ryp*Rzm*Byy, Rxm*Rym*Rzp*Byz;
+         Rxp*Rym*Rzm*Bzx, Rxm*Ryp*Rzm*Bzy, Rxm*Rym*Rzp*Bzz];
 
      
 eps_chi_chi_mu = i* [-Eout, BoutH; BoutE, Mout];
@@ -160,12 +181,6 @@ function f = nord(i,j,k)
 end
 function f = dn(i,j,k)
   f = DN;
-%     TW = tukeywin(200, 0.4);
-%     if r(i,j,k,c) < R
-%         f = DN; %*TW(round(100*(1-r(i,j,k,c)/R)+1));
-%     else
-%         f = 0;
-%     end
 end
 
 function f = ind(i,j,k)
@@ -174,7 +189,7 @@ end
 
 %SELECT DIRECTOR FIELD
 
-function [f1,f2,f3] = dir(i,j,k)
+function [f1,f2,f3] = dir(dir_type, i,j,k)
 %RANDOM
     if strcmp(dir_type, 'RANDOM')
         f11 = rand;
@@ -183,11 +198,6 @@ function [f1,f2,f3] = dir(i,j,k)
         f1 = f11/sqrt(f11^2+f21^2+f31^2);
         f2 = f21/sqrt(f11^2+f21^2+f31^2);
         f3 = f31/sqrt(f11^2+f21^2+f31^2);
-%ISOTROPIC
-    elseif strcmp(dir_type, 'ISOTROPIC')
-           f1 = 1;
-           f2 = 0;
-           f3 = 0; 
 %ISOTROPIC
     elseif strcmp(dir_type, 'ISOTROPIC')
            f1 = 1;
@@ -339,63 +349,7 @@ end
 
 %calculates components of epsilon from director field, accounts for Yee
 %lattice shifts
-function [eps] = eblock(i,j,k)
-    
-    if abs(gain) > 0 && r(i,j,k,c) < R
-        G = - 1i * gain * NO;
-    else
-        G = 0;
-    end
-    
-    %PML factors
-    if DPMLs(1) == 0
-        sxs = 1;
-    elseif i <= abs(DPMLs(1))
-        sxs = s(i,nx,-DPMLs(1));
-    else
-        sxs = 1;
-    end
-             
-    if DPMLs(2) == 0
-        sys = 1;
-    elseif j <= abs(DPMLs(2))
-        sys = s(j,ny,-DPMLs(2));
-    else
-        sys = 1;
-    end
-            
-    if DPMLs(3) == 0
-        szs = 1;
-    elseif k <= abs(DPMLs(3))
-        szs = s(k,nz,-DPMLs(3));
-    else
-        szs = 1;    
-    end
-
-    if DPMLe(1) == 0
-        sxe = 1;
-    elseif i > nx - DPMLe(1)
-        sxe = s(i,nx,DPMLe(1));
-    else
-        sxe = 1;    
-    end
-             
-    if DPMLe(2) == 0
-        sye = 1;
-    elseif j > ny - DPMLe(2)
-        sye = s(j,ny,DPMLe(2));
-    else
-        sye = 1;    
-    end
-            
-    if DPMLe(3) == 0
-        sze = 1;
-    elseif k > nz - DPMLe(3)
-        sze = s(k,nz,DPMLe(3));
-    else
-        sze = 1;    
-    end
-    
+function [eps] = eblock(dir_type, i,j,k)    
     %i+1/2 for exx eyx ezx   
     [dir1,dir2,dir3]=dir(dir_type, i +1/2,j,k);
 
@@ -409,19 +363,9 @@ function [eps] = eblock(i,j,k)
     Qten = [Qxx Qxy Qxz; Qxy Qyy Qyz; Qxz Qyz Qzz];
     
     epsX = (deps(i +1/2,j,k) * Qten + (epsO(i +1/2,j,k)+deps(i +1/2,j,k)/3) * eye (3)); 
-    epsX(1,1) = epsX(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsX(1,2) = epsX(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsX(1,3) = epsX(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsX(2,1) = epsX(2,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsX(2,2) = epsX(2,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsX(2,3) = epsX(2,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsX(3,1) = epsX(3,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsX(3,2) = epsX(3,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsX(3,3) = epsX(3,3) * (sxs*sys/szs) * (sxe*sye/sze);
-
 
     %j+1/2 for exy eyy ezy
-    [dir1,dir2,dir3]=dir(dirtype, i,j +1/2,k);
+    [dir1,dir2,dir3]=dir(dir_type, i,j +1/2,k);
     Qxx = (dir1*dir1 * 3 -1)/2;
     Qxy = (dir1*dir2 * 3)/2;
     Qxz = (dir1*dir3 * 3)/2;
@@ -432,19 +376,10 @@ function [eps] = eblock(i,j,k)
     Qten = [Qxx Qxy Qxz; Qxy Qyy Qyz; Qxz Qyz Qzz];
     
     epsY = (deps(i,j +1/2,k) * Qten + (epsO(i,j +1/2,k)+deps(i,j +1/2,k)/3) * eye (3)); 
-    epsY(1,1) = epsY(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsY(1,2) = epsY(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsY(1,3) = epsY(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsY(2,1) = epsY(2,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsY(2,2) = epsY(2,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsY(2,3) = epsY(2,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsY(3,1) = epsY(3,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsY(3,2) = epsY(3,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsY(3,3) = epsY(3,3) * (sxs*sys/szs) * (sxe*sye/sze);
    
     
     %k+1/2 for exz eyz ezz
-    [dir1,dir2,dir3]=dir(dirtype, i,j,k+1/2);
+    [dir1,dir2,dir3]=dir(dir_type, i,j,k+1/2);
     Qxx = (dir1*dir1 * 3 -1)/2;
     Qxy = (dir1*dir2 * 3)/2;
     Qxz = (dir1*dir3 * 3)/2;
@@ -453,24 +388,8 @@ function [eps] = eblock(i,j,k)
     Qzz = (dir3*dir3 * 3 -1)/2;
     
     Qten = [Qxx Qxy Qxz; Qxy Qyy Qyz; Qxz Qyz Qzz];
-%     [TQ,DQ] = eig(Qten);
-%     [TQ,DQ] = sortem(TQ,DQ);
-%    DQ(1,1) = DQ(1,1) * (1 + G/(DQ(1,1)*deps(i,j,k+1/2)));
-%    DQ(2,2) = DQ(2,2) * (1 + G/(DQ(2,2)*deps(i,j,k+1/2)));
-%    DQ(3,3) = DQ(3,3) * (1 + G/(DQ(3,3)*deps(i,j,k+1/2)));
-%     Qten = TQ * DQ * TQ';
     
-    epsZ = (deps(i,j,k+1/2) * Qten + (epsO(i,j,k+1/2)+deps(i,j,k+1/2)/3) * eye (3)); 
-    epsZ(1,1) = epsZ(1,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsZ(1,2) = epsZ(1,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsZ(1,3) = epsZ(1,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsZ(2,1) = epsZ(2,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsZ(2,2) = epsZ(2,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsZ(2,3) = epsZ(2,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    epsZ(3,1) = epsZ(3,1) * (sys*szs/sxs) * (sye*sze/sxe);
-    epsZ(3,2) = epsZ(3,2) * (sxs*szs/sys) * (sxe*sze/sye);
-    epsZ(3,3) = epsZ(3,3) * (sxs*sys/szs) * (sxe*sye/sze);
-    
+    epsZ = (deps(i,j,k +1/2) * Qten + (epsO(i,j,k +1/2)+deps(i,j,k +1/2)/3) * eye (3));
     
     eps = [epsX(1,1) epsY(1,2) epsZ(1,3); epsX(2,1) epsY(2,2) epsZ(2,3); epsX(3,1) epsY(3,2) epsZ(3,3)];
     
@@ -486,101 +405,8 @@ function [bian] = bianblock(bian_type, i,j,k)
             bian = [0, i*Delta, 0; -i*Delta, 0, 0; 0, 0, 0];
         else
             bian = sparse(3, 3);
-end
-
-%PML FUNCTIONS
-function sout = s(l,n,PML)
-    sigma1 = 10*2*lambda2/(4*pi*abs(PML));   
-    sout =  psi(l,n,PML) - 1i * sigma1 * eta(l,n,PML);
-end
-
-%coordinate stretching
-function psiout =  psi(l,n,PML)
-     psiout = 1;
-%     if PML > 0
-%         if l > R
-%             psiout = ((n-l)/(n-R))^2;
-%         else
-%             psiout = 1;
-%         end
-%     elseif PML < 0
-%         if l < R
-%             psiout = ((l)/(R))^2;
-%         else
-%             psiout = 1;
-%         end        
-%     else
-%         psiout = 1;
-%     end
-end
-
-function etaout = eta(l,n,PML)
-    if PML < 0 && l <= abs(PML)
-        etaout = (abs((l-abs(PML)))/abs(PML))^3;
-    elseif PML > 0 && l > n - PML
-        etaout = (abs((l-(n-PML)))/PML)^3;
-    else
-        etaout = 0;
-    end
-end
-  
-function [P2,D2]=sortem(P,D)
-    % this function takes in two matrices P and D, presumably the output 
-    % from Matlab's eig function, and then sorts the columns of P to 
-    % match the sorted columns of D (going from largest to smallest)
-    % 
-    % EXAMPLE: 
-    % 
-    % D =
-    %    -90     0     0
-    %      0   -30     0
-    %      0     0   -60
-    % P =
-    %      1     2     3
-    %      1     2     3
-    %      1     2     3
-    % 
-    % [P,D]=sortem(P,D)
-    % P =
-    %      2     3     1
-    %      2     3     1
-    %      2     3     1
-    % D =
-    %    -30     0     0
-    %      0   -60     0
-    %      0     0   -90
-    D2=diag(sort(diag(D),'descend')); % make diagonal matrix out of sorted diagonal values of input D
-    [~, ind]=sort(diag(D),'descend'); % store the indices of which columns the sorted eigenvalues come from
-    P2=P(:,ind); % arrange the columns in this order
-end
-        
-function A = read_dir(filename)
-    fileID = fopen(filename,'r');
-    A = fread(fileID,'float');
-    fclose(fileID);
-end
-
-function [] = exportdir(name)
-    dirx = zeros(nx,ny,nz);
-    diry = zeros(nx,ny,nz);
-    dirz = zeros(nx,ny,nz);
-    for di = 1:nx 
-        for dj = 1:ny
-            for dk = 1:nz
-                [dirx(di,dj,dk),diry(di,dj,dk),dirz(di,dj,dk)] = dir(di,dj,dk);
-            end
         end
     end
-    dirout = cat(4,dirx,diry,dirz);
-    dirout = permute(dirout, [4,1,2,3]);
-    
-    outvec = strcat(num2str(file),'_DIR_',name,'_',num2str(nx),'_',num2str(ny),'_',num2str(nz),'.raw');
-    
-    fid = fopen(outvec,'w');
-    fwrite(fid,dirout,'float');
-    fclose(fid);  
-
 end
-
 
 end
