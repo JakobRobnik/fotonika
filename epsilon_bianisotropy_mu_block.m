@@ -6,8 +6,8 @@ global nx ny nz u1 u2 u3 NO DN NOUT file R c gain Delta modetype;
 
 %calculates transition matrix P: standard basis -> basis of new basis
 %vectors u1, u2, u3 and it`s inverse
-Pmatrix = [u1', u2', u3'];
-PmatrixINV = inv(Pmatrix);
+PmatrixINV = [u1', u2', u3'];
+Pmatrix = inv(PmatrixINV);
 
 n = nx*ny*nz;
 

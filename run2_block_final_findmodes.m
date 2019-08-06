@@ -2,7 +2,8 @@ lambda = 100;
 lastmax = 0;
 
 global file
-file =  strcat('/data/Matlab/bianisotropyFB/Alrods_air/kvecG');
+%file =  strcat('/data/Matlab/bianisotropyFB/Alrods_air/kvecG');
+file =  strcat('C:/Users/USER/Documents/Physics/fotonika');
 mkdir(strcat(file,'/dir'));
 
 kx = [0 1/4 2/4 3/4 1 1   1   1   1 3/4 2/4 1/4 0];
@@ -18,16 +19,16 @@ for cycle=1:1
 
     global nx ny nz u1 u2 u3 Lx Ly Lz dx dy dz NO DN NOUT nr pfield ref refz R DPMLe DPMLs oct c gain Delta modetype kvec;
 
-    nx = 30; %box size in pixels
-    ny = 30;
-    nz = 3;
+    nx = 15; %box size in pixels
+    ny = 15;
+    nz = 10;
     
     %triangular grid
     u1 = [1, 0, 0];
     u2 = [0.5, 0.5*sqrt(3), 0];
     u3 = [0, 0, 1];
     
-    R = 50/5; %droplet radius
+    R = nx/5; %droplet radius
     Lx = nx ;
     Ly = ny ;
     Lz = nz ;
@@ -70,7 +71,7 @@ for cycle=1:1
     modetype = 'ALL';
     
     %centre of the droplet - ADD +1 FOR PML BOUNDARY
-    c = [nx/2, ny/2, nz/2];
+    c = [nx*0.75, (ny/nx)*nx*sqrt(3)/4, nz/2];
     %wave vector in units omega/2*pi*c
     kvec = pi*[kx(cycle) ky(cycle) 0]; 
 
