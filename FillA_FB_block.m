@@ -1,38 +1,30 @@
 %this function fills the matrix
-function double_rotor = FillA_FB_block(BC1)
-global nx ny nz;
+function double_rotor = FillA_FB_block()
+global nx ny nz modetype kvec;
 
 n=nx*ny*nz;
-fiz = fi(nz);
 
-if strcmp(BC1, 'PEC')
-    fiz(1,1) = 0;
-end
-
-Fx = kron(D(nz),kron(D(ny),fi(nx)));
-Fy = kron(D(nz),kron(fi(ny),D(nx)));
-Fz = kron(fiz,kron(D(ny),D(nx)));
-
-%mirror BC for electric field at the start of domain
-% if strcmp(BC1, 'PEC')
-% %     Fx(1,1) = 0;
-% %     Fy(1,1) = 0;
-%     Fz(1,1) = 0;
-% end
+Fx = kron(D(nz),kron(D(ny),fiX(nx,kvec)));
+Fy = kron(D(nz),kron(fiY(ny,kvec),D(nx)));
+Fz = kron(fiZ(nz,kvec),kron(D(ny),D(nx)));
 
 Bx = -Fx';
 By = -Fy';
 Bz = -Fz';
 
-F = [sparse(n,n) -Fz Fy; Fz sparse(n,n) -Fx; -Fy Fx sparse(n,n)];
-B = [sparse(n,n) -Bz By; Bz sparse(n,n) -Bx; -By Bx sparse(n,n)];
-
-double_rotor = [sparse(3*n, 3*n) F; F sparse(3*n, 3*n)];
-
-%INDEX COUNTER
-function f = ind(i,j,k)
-    f = (k-1)*nx*ny + (j-1)*nx + (i-1) + 1;
+if strcmp(modetype, 'ALL') 
+    F = [sparse(n,n) -Fz Fy; Fz sparse(n,n) -Fx; -Fy Fx sparse(n,n)];
+    B = [sparse(n,n) -Bz By; Bz sparse(n,n) -Bx; -By Bx sparse(n,n)];
+elseif strcmp(modetype, 'TM')
+    F = [sparse(n,n) -Fz Fy; Fz sparse(n,n) -Fx; sparse(n,n) sparse(n,n) sparse(n,n)];
+    B = [sparse(n,n) -Bz sparse(n,n); Bz  sparse(n,n) sparse(n,n); -By Bx sparse(n,n)];    
+elseif strcmp(modetype, 'TE')
+    F = [sparse(n,n) sparse(n,n) sparse(n,n); Fz sparse(n,n) sparse(n,n); -Fy Fx sparse(n,n)];
+    B = [sparse(n,n) -Bz By; Bz  sparse(n,n) -Bx; sparse(n,n) sparse(n,n) sparse(n,n)];
 end
+
+double_rotor = [sparse(3*n, 3*n) F/1i; B/1i sparse(3*n, 3*n)];
+
 %FORWARD AND DIAG MATRIX
 function Dout = D(n)
     Dout = speye(n);
@@ -40,13 +32,17 @@ end
 function Dpout = Dp(n)
     Dpout = sparse(1:n-1,2:n,ones(1,n-1),n,n);
 end
-function fiout = fi(n)
+function fiout = fiX(n,k)
     fiout = Dp(n) - D(n);
-    fiout(n, 1) = 1;
+    fiout(n, 1) = exp(1i*k(1));
 end
-%CHANGE OF INDEX
-function f = dind(di,dj,dk,dcomp)
-    f = 3*di + 3*nx*dj + 3*nx*ny*dk + dcomp;
+function fiout = fiY(n,k)
+    fiout = Dp(n) - D(n);
+    fiout(n, 1) = exp(1i*k(2));
+end
+function fiout = fiZ(n,k)
+    fiout = Dp(n) - D(n);
+    fiout(n, 1) = exp(1i*k(3));
 end
 end
 

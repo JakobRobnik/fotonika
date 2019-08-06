@@ -2,9 +2,16 @@ function eps_chi_chi_mu = epsilon_bianisotropy_mu_block(epstype, biantype, mutyp
 %THIS FUNCTION CALCULATES THE EPSILON MATRIX ELEMENT THROUGHT THE ENTIRE
 %DOMAIN - 
 
-global nx ny nz NO DN NOUT file R c DPMLs DPMLe gain Delta;
+global nx ny nz u1 u2 u3 NO DN NOUT file R c gain Delta modetype;
+
+%calculates transition matrix P: standard basis -> basis of new basis
+%vectors u1, u2, u3 and it`s inverse
+Pmatrix = [u1', u2', u3'];
+PmatrixINV = inv(Pmatrix);
 
 n = nx*ny*nz;
+
+plotdir(epstype);
 
 Di = zeros(n,1);
 Dj = zeros(n,1);
@@ -32,7 +39,11 @@ for i = 1:nx
     for j = 1:ny
         for k = 1:nz      
             D1 = eblock(epstype,i,j,k); %epsilon
-            D2 = eblock(mutype,i,j,k); %mu
+            if strcmp(mutype, 'IDENTITY')
+                D2 = speye(3);
+            else
+                D2 = eblock(mutype,i,j,k); %mu
+            end
             D3 = bianblock(biantype,i,j,k); %bianisotropy
             
             % epsilon and mu blocks are all diagonal matrices
@@ -150,30 +161,66 @@ Rxm = Rxp';
 Rym = Ryp';
 Rzm = Rzp';
 
-Eout = [        Exx, Rxp*Rym*Exy,     Rxp*Rzm*Exz; 
-        Ryp*Rxm*Eyx,         Eyy,     Ryp*Rzm*Eyz; 
-        Rzp*Rxm*Ezx, Rzp*Rym*Ezy,             Ezz];
+mat0 = sparse(n,n);
+if strcmp(modetype, 'ALL') 
+    Eout = [        Exx, Rxp*Rym*Exy,     Rxp*Rzm*Exz; 
+            Ryp*Rxm*Eyx,         Eyy,     Ryp*Rzm*Eyz; 
+            Rzp*Rxm*Ezx, Rzp*Rym*Ezy,             Ezz];
 
 
-Mout = [        Mxx, Rxm*Ryp*Mxy,     Rxm*Rzp*Mxz; 
-        Rym*Rxp*Myx,         Myy,     Rym*Rzp*Myz;
-        Rzm*Rxp*Mzx, Rzm*Ryp*Mzy,             Mzz];
-    
-BoutE = conj([Rxm*Ryp*Rzp*Bxx, Rxp*Rym*Rzp*Byx, Rxp*Ryp*Rzm*Bzx;
-              Rxm*Ryp*Rzp*Bxy, Rxp*Rym*Rzp*Byy, Rxp*Ryp*Rzm*Bzy;
-              Rxm*Ryp*Rzp*Bxz, Rxp*Rym*Rzp*Byz, Rxp*Ryp*Rzm*Bzz]);
+    Mout = [        Mxx, Rxm*Ryp*Mxy,     Rxm*Rzp*Mxz; 
+            Rym*Rxp*Myx,         Myy,     Rym*Rzp*Myz;
+            Rzm*Rxp*Mzx, Rzm*Ryp*Mzy,             Mzz];
 
-BoutH = [Rxp*Rym*Rzm*Bxx, Rxm*Ryp*Rzm*Bxy, Rxm*Rym*Rzp*Bxz;
-         Rxp*Rym*Rzm*Byx, Rxm*Ryp*Rzm*Byy, Rxm*Rym*Rzp*Byz;
-         Rxp*Rym*Rzm*Bzx, Rxm*Ryp*Rzm*Bzy, Rxm*Rym*Rzp*Bzz];
+    BoutE = conj([Rxm*Ryp*Rzp*Bxx, Rxp*Rym*Rzp*Byx, Rxp*Ryp*Rzm*Bzx;
+                  Rxm*Ryp*Rzp*Bxy, Rxp*Rym*Rzp*Byy, Rxp*Ryp*Rzm*Bzy;
+                  Rxm*Ryp*Rzp*Bxz, Rxp*Rym*Rzp*Byz, Rxp*Ryp*Rzm*Bzz]);
 
+    BoutH = [Rxp*Rym*Rzm*Bxx, Rxm*Ryp*Rzm*Bxy, Rxm*Rym*Rzp*Bxz;
+             Rxp*Rym*Rzm*Byx, Rxm*Ryp*Rzm*Byy, Rxm*Rym*Rzp*Byz;
+             Rxp*Rym*Rzm*Bzx, Rxm*Ryp*Rzm*Bzy, Rxm*Rym*Rzp*Bzz];
+elseif strcmp(modetype, 'TM') 
+    Eout = [mat0, mat0,     Rxp*Rzm*Exz; 
+            mat0, mat0,     Ryp*Rzm*Eyz; 
+            mat0, mat0,             Ezz];
+
+
+    Mout = [mat0,        mat0,         mat0; 
+            mat0,        mat0,         mat0;
+            Rzm*Rxp*Mzx, Rzm*Ryp*Mzy,  Mzz];
+
+    BoutE = conj([mat0, mat0, Rxp*Ryp*Rzm*Bzx;
+                  mat0, mat0, Rxp*Ryp*Rzm*Bzy;
+                  mat0, mat0, Rxp*Ryp*Rzm*Bzz]);
+
+    BoutH = [mat0,            mat0,            mat0;
+             mat0,            mat0,            mat0;
+             Rxp*Rym*Rzm*Bzx, Rxm*Ryp*Rzm*Bzy, Rxm*Rym*Rzp*Bzz];
+elseif strcmp(modetype, 'TE') 
+    Eout = [mat0,        mat0,         mat0; 
+            mat0,        mat0,         mat0;
+            Rzp*Rxm*Ezx, Rzp*Rym*Ezy,  Ezz];
+
+
+    Mout = [mat0, mat0,     Rxm*Rzp*Mxz; 
+            mat0, mat0,     Rym*Rzp*Myz;
+            mat0, mat0,             Mzz];
+
+    BoutE = conj([mat0,            mat0,            mat0;
+                  mat0,            mat0,            mat0;
+                  Rxm*Ryp*Rzp*Bxz, Rxp*Rym*Rzp*Byz, Rxp*Ryp*Rzm*Bzz]);
+
+    BoutH = [mat0, mat0, Rxm*Rym*Rzp*Bxz;
+             mat0, mat0, Rxm*Rym*Rzp*Byz;
+             mat0, mat0, Rxm*Rym*Rzp*Bzz];
+end
      
-eps_chi_chi_mu = i* [-Eout, BoutH; BoutE, Mout];
+eps_chi_chi_mu = [-Eout BoutH; BoutE Mout];
      
 %define space dependance of refractive index
 function f = nord(i,j,k)
     TW = tukeywin(200, 0.4);
-    if r(i,j,k,c) < R
+    if r(i,j,nz/2,c) < R
         f = NO; %NOUT + (NO - NOUT)*TW(round(100*(1-r(i,j,k,c)/R)+1));
     else
         f = NOUT;
@@ -189,7 +236,11 @@ end
 
 %SELECT DIRECTOR FIELD
 
-function [f1,f2,f3] = dir(dir_type, i,j,k)
+function [f1,f2,f3] = dir(dir_type, ri0,rj0,rk0)
+    %transform to standard coordinates
+    standard_index_vector = PmatrixINV * [ri0;rj0;rk0];
+    ri = standard_index_vector(1); rj = standard_index_vector(2); rk = standard_index_vector(3);
+    
 %RANDOM
     if strcmp(dir_type, 'RANDOM')
         f11 = rand;
@@ -205,7 +256,7 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
            f3 = 0; 
 %RADIAL DROPLET
     elseif strcmp(dir_type, 'ISOSPHERE')
-       if r(i,j,k,c) < R 
+       if r(ri,rj,rk,c) < R 
            f1 = 1;
            f2 = 0;
            f3 = 0;           
@@ -222,34 +273,34 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
 % HELICONICAL
     elseif strcmp(dir_type, 'HELICONIC')
         f1 = cos(pi/4);
-        f2 = sin(2*pi*i/(nx))*sin(pi/4);
-        f3 = cos(2*pi*i/(nx))*sin(pi/4);
+        f2 = sin(2*pi*ri/(nx))*sin(pi/4);
+        f3 = cos(2*pi*ri/(nx))*sin(pi/4);
 %HELICONICAL XY DIAGONAL
     elseif strcmp(dir_type,'HELICONICXY')
         pitch = nx*sqrt(2)/2;
-        f1 = cos(pi/4)*cos(pi/4) - sin(phi(i*cos(pi/4)+j*(sin(pi/4)),pitch)) * sin(pi/4) * sin(pi/4);
-        f2 = cos(pi/4)*sin(pi/4) + sin(phi(i*cos(pi/4)+j*(sin(pi/4)),pitch)) * sin(pi/4) * cos(pi/4);
-        f3 = cos(phi(i*cos(pi/4)+j*(sin(pi/4)),pitch))*sin(pi/4);
+        f1 = cos(pi/4)*cos(pi/4) - sin(phi(ri*cos(pi/4)+rj*(sin(pi/4)),pitch)) * sin(pi/4) * sin(pi/4);
+        f2 = cos(pi/4)*sin(pi/4) + sin(phi(ri*cos(pi/4)+rj*(sin(pi/4)),pitch)) * sin(pi/4) * cos(pi/4);
+        f3 = cos(phi(ri*cos(pi/4)+rj*(sin(pi/4)),pitch))*sin(pi/4);
 %HELICONICAL XZ DIAGONAL
     elseif strcmp(dir_type, 'HELICONICXZ')
         theta = pi/4;
         pitch = nx*sqrt(2)/2;
-        f1 = cos(theta)*cos(pi/4) - cos(phi(i*cos(pi/4)+k*(sin(pi/4)),pitch))*sin(theta) * sin(pi/4);
-        f2 = sin(phi(i*cos(pi/4)+k*(sin(pi/4)),pitch)) * sin(theta);
-        f3 = cos(theta)*sin(pi/4) + cos(phi(i*cos(pi/4)+k*(sin(pi/4)),pitch))*sin(theta) * cos(pi/4);
+        f1 = cos(theta)*cos(pi/4) - cos(phi(ri*cos(pi/4)+rk*(sin(pi/4)),pitch))*sin(theta) * sin(pi/4);
+        f2 = sin(phi(ri*cos(pi/4)+rk*(sin(pi/4)),pitch)) * sin(theta);
+        f3 = cos(theta)*sin(pi/4) + cos(phi(ri*cos(pi/4)+rk*(sin(pi/4)),pitch))*sin(theta) * cos(pi/4);
 %HELICONICAL YZ DIAGONAL
     elseif strcmp(dir_type, 'HELICONICYZ')
         theta = pi/4;
         pitch = ny*sqrt(2)/2;
-        f1 = cos(theta)*cos(pi/4) - cos(phi(j*cos(pi/4)+k*(sin(pi/4)),pitch))*sin(theta) * sin(pi/4);
-        f2 = sin(phi(j*cos(pi/4)+k*(sin(pi/4)),pitch)) * sin(theta);
-        f3 = cos(theta)*sin(pi/4) + cos(phi(j*cos(pi/4)+k*(sin(pi/4)),pitch))*sin(theta) * cos(pi/4);        
+        f1 = cos(theta)*cos(pi/4) - cos(phi(rj*cos(pi/4)+rk*(sin(pi/4)),pitch))*sin(theta) * sin(pi/4);
+        f2 = sin(phi(rj*cos(pi/4)+rk*(sin(pi/4)),pitch)) * sin(theta);
+        f3 = cos(theta)*sin(pi/4) + cos(phi(rj*cos(pi/4)+rk*(sin(pi/4)),pitch))*sin(theta) * cos(pi/4);        
 %RADIAL DROPLET
     elseif strcmp(dir_type, 'RADIALD')
-       if r(i,j,k,c) < R 
-           f1 = -(i-c(1))/(r(i,j,k,c)+1E-12);
-           f2 = -(j-c(2))/(r(i,j,k,c)+1E-12);
-           f3 = -(k-c(3))/(r(i,j,k,c)+1E-12);           
+       if r(ri,rj,rk,c) < R 
+           f1 = -(ri-c(1))/(r(ri,rj,rk,c)+1E-12);
+           f2 = -(rj-c(2))/(r(ri,rj,rk,c)+1E-12);
+           f3 = -(rk-c(3))/(r(ri,rj,rk,c)+1E-12);           
        else 
            f1 = 0;
            f2 = 0;
@@ -257,10 +308,10 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
        end
 %QUARTER OF A DROPLET
     elseif strcmp(dir_type, 'RADIALD_QTR')
-       if r_qrt(i,j,k) < R 
-           f1 = -(i)/(r_qrt(i,j,k)+1E-12);
-           f2 = -(j)/(r_qrt(i,j,k)+1E-12);
-           f3 = -(k)/(r_qrt(i,j,k)+1E-12);           
+       if r_qrt(ri,rj,rk) < R 
+           f1 = -(ri)/(r_qrt(ri,rj,rk)+1E-12);
+           f2 = -(rj)/(r_qrt(ri,rj,rk)+1E-12);
+           f3 = -(rk)/(r_qrt(ri,rj,rk)+1E-12);           
        else 
            f1 = 0;
            f2 = 0;
@@ -268,20 +319,20 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
        end
 %ESCAPED CYLINDER GUIDE
     elseif strcmp(dir_type, 'ESCAPEDC')
-       if sqrt((i-nx/2)^2 + (j-ny/2)^2) < nx/4 
-           f1 = -sin(2*pi*(i-nx/2)/nx);
-           f2 = -sin(2*pi*(j-ny/2)/nx);
+       if sqrt((ri-nx/2)^2 + (rj-ny/2)^2) < nx/4 
+           f1 = -sin(2*pi*(ri-nx/2)/nx);
+           f2 = -sin(2*pi*(rj-ny/2)/nx);
            f3 = sqrt(1-f1^2-f2^2);           
        else 
-           f1 = -(i-nx/2)/sqrt((i-nx/2)^2 + (j-ny/2)^2 +1E-12);
-           f2 = -(j-ny/2)/sqrt((i-nx/2)^2 + (j-ny/2)^2 +1E-12);
+           f1 = -(ri-nx/2)/sqrt((ri-nx/2)^2 + (rj-ny/2)^2 +1E-12);
+           f2 = -(rj-ny/2)/sqrt((ri-nx/2)^2 + (rj-ny/2)^2 +1E-12);
            f3 = 0;
        end
 %BIPOLAR DROPLET
     elseif strcmp(dir_type, 'BIPOLAR')
-       if r(i,j,k,c) < R 
-           th = (k-c(3))/(R*r(i/R,j/R,k/R,c/R));
-           ph = atan2((j-c(2))/R,(i-c(1))/R);
+       if r(ri,rj,rk,c) < R 
+           th = (rk-c(3))/(R*r(ri/R,rj/R,rk/R,c/R));
+           ph = atan2((rj-c(2))/R,(ri-c(1))/R);
            f1 = cos(th)*cos(ph) / sqrt(cos(th)^2 + sin(th)^2);
            f2 = cos(th)*sin(ph) / (cos(th)^2 + sin(th)^2);
            f3 = -sin(th) / sqrt(cos(th)^2 + sin(th)^2);       
@@ -292,9 +343,9 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
        end
 %BIPOLAR DROPLET in x direction
      elseif strcmp(dir_type, 'BIPOLARX')
-       if r(i,j,k,c) < R 
-           th = (i-c(3))/(R*r(i/R,j/R,k/R,c/R));
-           ph = atan2((j-c(2))/R,(k-c(3))/R);
+       if r(ri,rj,rk,c) < R 
+           th = (ri-c(3))/(R*r(ri/R,rj/R,rk/R,c/R));
+           ph = atan2((rj-c(2))/R,(rk-c(3))/R);
            f3 = -cos(th)*cos(ph) / sqrt(cos(th)^2 + sin(th)^2);
            f2 = cos(th)*sin(ph) / (cos(th)^2 + sin(th)^2);
            f1 = -sin(th) / sqrt(cos(th)^2 + sin(th)^2);       
@@ -303,17 +354,29 @@ function [f1,f2,f3] = dir(dir_type, i,j,k)
            f2 = 0;
            f3 = 0;
        end
+%CYLINDER
+       elseif strcmp(dir_type, 'CYLINDER')
+       if sqrt((ri-c(1))^2 + (rj-c(2))^2) < R 
+           f1 = 0;
+           f2 = 1;
+           f3 = 0;           
+       else 
+           f1 = 0;
+           f2 = 0;
+           f3 = 0;
+       end
 %read DIR from file   
      elseif strcmp(dir_type, 'FILE')  
-         f1 = dirarray(3*ind(i,j,k)-2);
-         f2 = dirarray(3*ind(i,j,k)-1);
-         f3 = dirarray(3*ind(i,j,k)-0);
+         f1 = dirarray(3*ind(ri,rj,rk)-2);
+         f2 = dirarray(3*ind(ri,rj,rk)-1);
+         f3 = dirarray(3*ind(ri,rj,rk)-0);
     else
         disp('ERROR: Unknown analytical director field');
         return;
     end    
 end  
-        
+
+
 %phi angle for heliconics and cholesterics
 function f = phi(l,pitch)
     f = 2*pi*l/(pitch);
@@ -347,9 +410,10 @@ function f = deps(i,j,k)
 %     end
 end
 
+
 %calculates components of epsilon from director field, accounts for Yee
 %lattice shifts
-function [eps] = eblock(dir_type, i,j,k)    
+function eps = eblock(dir_type, i,j,k)    
     %i+1/2 for exx eyx ezx   
     [dir1,dir2,dir3]=dir(dir_type, i +1/2,j,k);
 
@@ -392,21 +456,91 @@ function [eps] = eblock(dir_type, i,j,k)
     epsZ = (deps(i,j,k +1/2) * Qten + (epsO(i,j,k +1/2)+deps(i,j,k +1/2)/3) * eye (3));
     
     eps = [epsX(1,1) epsY(1,2) epsZ(1,3); epsX(2,1) epsY(2,2) epsZ(2,3); epsX(3,1) epsY(3,2) epsZ(3,3)];
-    
+    eps = Pmatrix*eps*PmatrixINV;
 end
 
-function [bian] = bianblock(bian_type, i,j,k)
+function bian = bianblock(bian_type, ri0,rj0,rk0)
+    standard_index_vector = PmatrixINV * [ri0;rj0;rk0];
+    ri = standard_index_vector(1); rj = standard_index_vector(2); rk = standard_index_vector(3);
+    
 %ZERO
     if strcmp(bian_type, 'ZERO')
         bian = sparse(3, 3);
 %ISOTROPIC
     elseif strcmp(bian_type, 'KHANIKAEV')
-        if r(i,j,k,c) < R 
-            bian = [0, i*Delta, 0; -i*Delta, 0, 0; 0, 0, 0];
+        if r(ri,rj,rk,c) < R 
+            bian = [0 1i*Delta 0; -1i*Delta 0 0; 0 0 0];
         else
             bian = sparse(3, 3);
         end
     end
+    bian = Pmatrix * bian * PmatrixINV;
+end
+
+function [] = plotdir(dir_type)
+    u1=zeros(nx,ny);
+    v1=zeros(nx,ny);
+    u2=zeros(nx,nz);
+    v2=zeros(nx,nz);
+    u3=zeros(ny,nz);
+    v3=zeros(ny,nz);
+    nordplot = zeros(nx);
+    dnplot = zeros(nx);
+    nordplot2 = zeros(nx);
+    
+     for ii = 1:nx 
+        for jj = 1:ny
+            for kk = 1:nz
+%                 [u1(i,j),v1(i,j),~] = dir(i,j,nz-1);
+%                 [u2(i,k),~,v2(i,k)] = dir(i,1,k);
+%                 [~,u3(j,k),v3(j,k)] = dir(nx - 1,j,k); 
+                [u1(ii,jj),v1(ii,jj),~] = dir(dir_type,ii,jj,(nz+1)/2);
+                [u2(ii,kk),~,v2(ii,kk)] = dir(dir_type,ii,(nz+1)/2+1,kk);
+                [~,u3(jj,kk),v3(jj,kk)] = dir(dir_type,(nz+1)/2+1,jj,kk); 
+
+            end
+        end
+     end
+
+    [x1,y1]=meshgrid(1:nx,1:ny);
+    [x2,z2]=meshgrid(1:nx,1:nz);
+    [y3,z3]=meshgrid(1:ny,1:nz);
+    
+    for ii=1:nx
+        nordplot(ii) = nord(ii,3*ny/4,3*nz/4);
+        dnplot(ii) = dn(ii,3*ny/4,3*nz/4);
+        nordplot2(ii) =nord(ii,1,1);
+    end
+
+    f1 = figure;
+        set(f1,'visible','off');
+        quiver(x1,y1,u1',v1');
+        pbaspect([1 1 1]);
+    f2 = figure;
+        set(f2,'visible','off');
+        quiver(x2,z2,u2',v2');
+        pbaspect([1 1 1]);
+    f3 = figure;
+        set(f3,'visible','off');
+        quiver(y3,z3,u3',v3');
+        pbaspect([1 1 1]);
+    f4 = figure;
+        set(f4,'visible','off');    
+        plot(nordplot);
+    f5 = figure;
+        set(f5,'visible','off');   
+        plot(dnplot);   
+    f6 = figure;
+        set(f6,'visible','off');   
+        plot(nordplot2);
+        
+     out = strcat(file,'/dir');
+     print(f1,strcat(out,'XY'),'-dpng');
+     print(f2,strcat(out,'XZ'),'-dpng');
+     print(f3,strcat(out,'YZ'),'-dpng');
+     print(f4,strcat(out,'nord'),'-dpng');
+     print(f5,strcat(out,'dn'),'-dpng');
+     print(f6,strcat(out,'nord2'),'-dpng');
 end
 
 end

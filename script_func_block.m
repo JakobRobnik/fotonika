@@ -1,7 +1,7 @@
- function [odivH,odHmax,odivE,odEmax,dW] = script_func_block(vecH,vecE,value,whichplot,cycle,outgen)
+ function [odivH,odHmax,odivE,odEmax,dW,mH,mE,type] = script_func_block(vecH,vecE,value,whichplot,cycle,outgen)
 %SCRIPT_FUNC calculates and draws the fields
 
-global nx ny nz dx dy dz Exx Exy Exz Eyy Eyz Ezz file pfield R DPMLs DPMLe c oct;
+global nx ny nz dx dy dz Exx Exy Exz Eyy Eyz Ezz file pfield R DPMLs DPMLe c;
 
 if c(1)==0 || c(1)==0.5
     di = 1;
@@ -64,22 +64,6 @@ for i = 1:nx
                     intH(i,j,k) = Hx(i,j,k)^2 + Hy(i,j,k)^2 + Hz(i,j,k)^2;
                 end
             elseif strcmp(whichplot, 'ALL')
-%                 if DPML(1) > 0 
-%                     psix = psi(i,nx,DPML(1));
-%                 else
-%                     psix = 1;
-%                 end               
-%                 if DPML(2) > 0 
-%                     psiy = psi(j,ny,DPML(2));
-%                 else
-%                     psiy = 1;
-%                 end
-%                 if DPML(3) > 0 
-%                     psiz = psi(k,nz,DPML(3));
-%                 else
-%                     psiz = 1;
-%                 end
-                
                 Hx(i,j,k) = vecH((ind(i,j,k)),1);% * psix * psiy * psiz;
                 Hy(i,j,k) = vecH((ind(i,j,k))+ nx*ny*nz,1);% * psix * psiy * psiz;
                 Hz(i,j,k) = vecH((ind(i,j,k))+ 2*nx*ny*nz,1);% * psix * psiy * psiz;
@@ -95,22 +79,6 @@ for i = 1:nx
                     Hy(i,j,k) = 0;
                     Hz(i,j,k) = 0;
                 else
-%                     if DPML(1) ~= 0 
-%                         psix = psi(i,nx,DPML(1));
-%                     else
-%                         psix = 1;
-%                     end               
-%                     if DPML(2) ~= 0 
-%                         psiy = psi(j,ny,DPML(2));
-%                     else
-%                         psiy = 1;
-%                     end
-%                     if DPML(3) ~= 0 
-%                         psiz = psi(k,nz,DPML(3));
-%                     else
-%                         psiz = 1;
-%                     end
-
                     Hx(i,j,k) = vecH((ind(i,j,k)),1);% * psix * psiy * psiz;
                     Hy(i,j,k) = vecH((ind(i,j,k))+ nx*ny*nz,1);% * psix * psiy * psiz;
                     Hz(i,j,k) = vecH((ind(i,j,k))+ 2*nx*ny*nz,1);% * psix * psiy * psiz;
@@ -212,6 +180,19 @@ end
 dW = Win/W;
 odivH = divH;
 odHmax = maxdivH;
+
+mH = [max(max(max(abs(Hx)))), max(max(max(abs(Hy)))), max(max(max(abs(Hz))))];
+mE = [max(max(max(abs(reEx)))), max(max(max(abs(reEy)))), max(max(max(abs(reEz))))];
+
+if 100*mH(1) < mH(3)
+    type = 'TE';
+elseif 100*mH(3) < mH(1)
+    type = 'TM';
+else
+    type = 'UNDEFINED';
+end
+    
+    
 
 odivE = divE;
 odEmax = maxdivE;
@@ -476,8 +457,8 @@ if strcmp(pfield, 'YES')
 %         pause(1) 
         print(fig6,strcat(out,'Eintensty',num2str(cycle),'.png'),'-dpng');
         pause(1) 
-%         print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
-%         pause(1) 
+        print(fig7,strcat(out,'E1D_cycle',num2str(cycle),'.png'),'-dpng');
+        pause(1) 
     end
 end
 
